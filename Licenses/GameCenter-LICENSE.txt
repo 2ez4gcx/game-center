@@ -1,0 +1,10 @@
+Game Center — phần mềm miễn phí.
+
+Game Center luôn miễn phí: không bán, không quảng cáo, không có tính năng trả phí.
+Game Center là launcher/frontend; việc giả lập do RetroArch và các core libretro thực hiện,
+mỗi thành phần giữ giấy phép riêng (xem các file trong thư mục này).
+
+Game Center không phải sản phẩm chính thức của Sony, Nintendo hoặc Sega.
+Bộ cài không kèm ROM, ISO hoặc BIOS thương mại.
+
+TODO trước khi phát hành: chọn giấy phép cho mã nguồn Game Center và thay nội dung file này.

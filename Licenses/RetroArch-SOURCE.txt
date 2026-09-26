@@ -1,0 +1,11 @@
+RetroArch được phân phối theo GPLv3. Mã nguồn đúng phiên bản đóng gói:
+
+  RetroArch 1.22.2: https://github.com/libretro/RetroArch/releases/tag/v1.22.2
+
+Core đóng gói (bản build libretro buildbot, windows x86_64), mã nguồn:
+  Beetle PSX HW (GPLv2):         https://github.com/libretro/beetle-psx-libretro
+  FCEUmm (GPLv2):                https://github.com/libretro/libretro-fceumm
+  Gambatte (GPLv2):              https://github.com/libretro/gambatte-libretro
+  mGBA (MPL 2.0):                https://github.com/libretro/mgba
+  Snes9x (phi thương mại):       https://github.com/libretro/snes9x
+  Genesis Plus GX (phi thương mại): https://github.com/libretro/Genesis-Plus-GX

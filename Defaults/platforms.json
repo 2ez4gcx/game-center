@@ -1,0 +1,66 @@
+{
+  "_note": "Core đã chọn và kiểm tra license: xem Licenses/Core-LICENSES. Tên .dll khớp bản buildbot libretro (RetroArch 1.22.2).",
+  "platforms": [
+    {
+      "name": "NES",
+      "displayName": "NES",
+      "folders": ["NES", "Famicom", "FC"],
+      "core": "fceumm_libretro.dll",
+      "extensions": [".nes", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "SNES",
+      "displayName": "SNES",
+      "folders": ["SNES", "SuperNintendo", "SFC"],
+      "core": "snes9x_libretro.dll",
+      "extensions": [".sfc", ".smc", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "GB",
+      "displayName": "Game Boy",
+      "folders": ["GB", "GameBoy"],
+      "core": "gambatte_libretro.dll",
+      "extensions": [".gb", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "GBC",
+      "displayName": "Game Boy Color",
+      "folders": ["GBC", "GameBoyColor"],
+      "core": "gambatte_libretro.dll",
+      "extensions": [".gbc", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "GBA",
+      "displayName": "GBA",
+      "folders": ["GBA", "GameBoyAdvance"],
+      "core": "mgba_libretro.dll",
+      "extensions": [".gba", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "MegaDrive",
+      "displayName": "Mega Drive",
+      "folders": ["MegaDrive", "Mega Drive", "Genesis", "MD"],
+      "core": "genesis_plus_gx_libretro.dll",
+      "extensions": [".md", ".gen", ".bin", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "PS1",
+      "displayName": "PS1",
+      "folders": ["PS1", "PSX", "PlayStation"],
+      "core": "mednafen_psx_hw_libretro.dll",
+      "extensions": [".cue", ".bin", ".pbp", ".chd", ".m3u"],
+      "enabled": true,
+      "bios": {
+        "files": ["scph5500.bin", "scph5501.bin", "scph5502.bin", "scph1001.bin", "scph7001.bin"],
+        "required": false,
+        "note": "Beetle PSX HW dùng OpenBIOS khi không có BIOS; BIOS gốc cho tương thích tốt hơn."
+      }
+    }
+  ]
+}
