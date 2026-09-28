@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1328"/>
+      <stop offset="1" stop-color="#120A26"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00E5FF"/>
+      <stop offset="1" stop-color="#FF3D9A"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#bg)" stroke="#00E5FF" stroke-opacity="0.5" stroke-width="4"/>
+  <!-- Tay cầm -->
+  <path d="M70 92h116c22 0 38 18 42 40l8 44c3 18-16 30-30 18l-26-24H76l-26 24c-14 12-33 0-30-18l8-44c4-22 20-40 42-40z"
+        fill="none" stroke="url(#brand)" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M78 118v36M60 136h36" stroke="#00E5FF" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="176" cy="124" r="9" fill="#FF3D9A"/>
+  <circle cx="198" cy="146" r="9" fill="#00E5FF"/>
+</svg>

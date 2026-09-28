@@ -1,12 +1,15 @@
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using GameCenter.Core.Config;
 using GameCenter.Core.Emulation;
 using GameCenter.Core.Util;
 
-namespace GameCenter.App;
+namespace GameCenter.Desktop;
 
 /// <summary>
 /// Thiết lập phím bàn phím cho từng nút tay cầm ảo.
@@ -27,21 +30,16 @@ public sealed class KeyBindingWindow : Window
         Title = "Thiết lập phím";
         Width = 1040;
         SizeToContent = SizeToContent.Height;
-        MaxHeight = SystemParameters.WorkArea.Height * 0.95;
-        ResizeMode = ResizeMode.NoResize;
+        MaxHeight = 900;
+        CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        Background = (Brush)Application.Current.Resources["Bg"];
-        Foreground = (Brush)Application.Current.Resources["Fg"];
         _map = KeyboardLayout.Resolve(App.Settings.KeyBindings);
 
         var root = new StackPanel { Margin = new Thickness(32, 26, 32, 26) };
         root.Children.Add(Dialogs.Heading("⌨  Thiết lập phím"));
         root.Children.Add(Dialogs.Para("Bấm vào ô phím rồi nhấn phím bạn muốn dùng. Esc (thoát game), F1 (menu), F2 / F4 (lưu / tải nhanh) là phím hệ thống, không đổi được.", 19));
 
-        var cols = new Grid { Margin = new Thickness(0, 8, 0, 0) };
-        cols.ColumnDefinitions.Add(new ColumnDefinition());
-        cols.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
-        cols.ColumnDefinitions.Add(new ColumnDefinition());
+        var cols = new Grid { Margin = new Thickness(0, 8, 0, 0), ColumnDefinitions = new ColumnDefinitions("*,24,*") };
         var left = Group("TAY TRÁI", LeftHand);
         var right = Group("TAY PHẢI", RightHand);
         Grid.SetColumn(right, 2);
@@ -49,7 +47,7 @@ public sealed class KeyBindingWindow : Window
         cols.Children.Add(right);
         root.Children.Add(cols);
 
-        _status = new TextBlock { FontSize = 19, Margin = new Thickness(4, 16, 0, 0), Foreground = (Brush)Application.Current.Resources["Accent"], Text = " " };
+        _status = new TextBlock { FontSize = 19, Margin = new Thickness(4, 16, 0, 0), Foreground = Dialogs.Res("Accent"), Text = " " };
         root.Children.Add(_status);
 
         var buttons = new DockPanel { Margin = new Thickness(0, 12, 0, 0) };
@@ -57,13 +55,14 @@ public sealed class KeyBindingWindow : Window
         DockPanel.SetDock(reset, Dock.Left);
         buttons.Children.Add(reset);
         var right2 = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        right2.Children.Add(Dialogs.Button("Lưu", (_, _) => Save(), primary: true));
+        right2.Children.Add(Dialogs.Button("Lưu", async (_, _) => await Save(), primary: true));
         right2.Children.Add(Dialogs.Button("Hủy", (_, _) => Close()));
         buttons.Children.Add(right2);
         root.Children.Add(buttons);
 
         Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        PreviewKeyDown += OnKey;
+        // Bắt phím trước khi nút / ô khác xử lý (Enter, Space...)
+        AddHandler(KeyDownEvent, OnKey, RoutingStrategies.Tunnel);
         Dialogs.AttachGamepad(this);
         Refresh();
     }
@@ -73,32 +72,29 @@ public sealed class KeyBindingWindow : Window
         var panel = new StackPanel();
         panel.Children.Add(new TextBlock
         {
-            Text = title, FontSize = 15, FontFamily = (FontFamily)FindResource("TechFont"),
-            Foreground = (Brush)FindResource("FgDim"), Margin = new Thickness(4, 0, 0, 8),
+            Text = title, FontSize = 15, FontFamily = Dialogs.TechFont,
+            Foreground = Dialogs.Res("FgDim"), Margin = new Thickness(4, 0, 0, 8),
         });
         foreach (var id in ids)
         {
             var info = KeyboardLayout.Buttons.First(b => b.Id == id);
-            var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
-            var cap = new Button
-            {
-                Style = (Style)FindResource("BigButton"), MinWidth = 150, Margin = new Thickness(0),
-                FontFamily = (FontFamily)FindResource("TechFont"), FontSize = 22, Tag = id,
-            };
+            var row = new DockPanel { Margin = new Thickness(0, 4) };
+            var cap = new Button { MinWidth = 150, Margin = new Thickness(0), FontFamily = Dialogs.TechFont, FontSize = 22, Tag = id };
+            cap.Classes.Add("big");
             cap.Click += (_, _) => Listen(id);
             _caps[id] = cap;
             DockPanel.SetDock(cap, Dock.Right);
             row.Children.Add(cap);
             var label = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            label.Children.Add(new TextBlock { Text = info.Label, FontSize = 21, FontWeight = FontWeights.SemiBold });
-            label.Children.Add(new TextBlock { Text = info.Hint, FontSize = 15, Foreground = (Brush)FindResource("FgDim") });
+            label.Children.Add(new TextBlock { Text = info.Label, FontSize = 21, FontWeight = FontWeight.SemiBold });
+            label.Children.Add(new TextBlock { Text = info.Hint, FontSize = 15, Foreground = Dialogs.Res("FgDim") });
             row.Children.Add(label);
             panel.Children.Add(row);
         }
         return new Border
         {
-            Child = panel, Padding = new Thickness(18, 14, 18, 14), CornerRadius = new CornerRadius(16),
-            Background = (Brush)FindResource("Panel"), BorderBrush = (Brush)FindResource("Line"), BorderThickness = new Thickness(1.5),
+            Child = panel, Padding = new Thickness(18, 14), CornerRadius = new CornerRadius(16),
+            Background = Dialogs.Res("Panel"), BorderBrush = Dialogs.Res("Line"), BorderThickness = new Thickness(1.5),
         };
     }
 
@@ -108,35 +104,34 @@ public sealed class KeyBindingWindow : Window
         {
             bool listening = id == _listening;
             cap.Content = listening ? "Bấm phím…" : KeyboardLayout.DisplayName(_map[id]);
-            cap.Background = listening ? (Brush)FindResource("Play") : new SolidColorBrush(Color.FromArgb(0x66, 0x1A, 0x2A, 0x48));
-            cap.Foreground = listening ? (Brush)FindResource("AccentFg") : (Brush)FindResource("Fg");
+            cap.Background = listening ? Dialogs.Res("Play") : new SolidColorBrush(Color.FromArgb(0x66, 0x1A, 0x2A, 0x48));
+            cap.Foreground = listening ? Dialogs.Res("AccentFg") : Dialogs.Res("Fg");
         }
     }
 
     private void Listen(string id)
     {
         _listening = id;
-        _status.Text = $"Nhấn phím cho \"{KeyboardLayout.Buttons.First(b => b.Id == id).Label}\"  (Esc để hủy)";
+        _status.Text = $"Nhấn phím cho \"{Label(id)}\"  (Esc để hủy)";
         Refresh();
     }
 
-    private void OnKey(object sender, KeyEventArgs e)
+    private void OnKey(object? sender, KeyEventArgs e)
     {
         if (_listening == null)
         {
-            if (e.Key == Key.Escape) Close();
+            if (e.Key == Key.Escape) { e.Handled = true; Close(); }
             return;
         }
         e.Handled = true;
-        var key = e.Key == Key.System ? e.SystemKey : e.Key;
         var id = _listening;
         _listening = null;
 
-        if (key == Key.Escape) { _status.Text = "Đã hủy."; Refresh(); return; }
-        var ra = ToRetroArch(key);
+        if (e.Key == Key.Escape) { _status.Text = "Đã hủy."; Refresh(); return; }
+        var ra = ToRetroArch(e.Key);
         if (ra == null || KeyboardLayout.Reserved.Contains(ra))
         {
-            _status.Text = $"Phím {key} không dùng được, hãy chọn phím khác.";
+            _status.Text = $"Phím {e.Key} không dùng được, hãy chọn phím khác.";
             Refresh();
             return;
         }
@@ -163,7 +158,7 @@ public sealed class KeyBindingWindow : Window
         Refresh();
     }
 
-    private void Save()
+    private async Task Save()
     {
         try
         {
@@ -174,13 +169,13 @@ public sealed class KeyBindingWindow : Window
         catch (Exception ex)
         {
             Log.Error("Lưu phím lỗi", ex);
-            Dialogs.Info(this, "Không lưu được", ex.Message);
+            await Dialogs.Info(this, "Không lưu được", ex.Message);
             return;
         }
         Close();
     }
 
-    /// <summary>Đổi phím WPF sang tên phím trong retroarch.cfg.</summary>
+    /// <summary>Đổi phím Avalonia sang tên phím trong retroarch.cfg.</summary>
     public static string? ToRetroArch(Key k) => k switch
     {
         >= Key.A and <= Key.Z => k.ToString().ToLowerInvariant(),

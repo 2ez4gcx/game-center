@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace GameCenter.App;
+namespace GameCenter.Desktop;
 
 /// <summary>Thông tin tác giả và phiên bản hiển thị trong app.</summary>
 public static class AppInfo

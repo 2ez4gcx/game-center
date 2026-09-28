@@ -35,16 +35,13 @@ public static class RetroArchConfig
             ["savestate_directory"] = paths.StatesDir,
             ["system_directory"] = paths.BiosDir,
             ["libretro_directory"] = paths.CoresDir,
-            ["libretro_info_path"] = Path.Combine(paths.RetroArchDir, "info"),
-            ["assets_directory"] = Path.Combine(paths.RetroArchDir, "assets"),
-            ["joypad_autoconfig_dir"] = Path.Combine(paths.RetroArchDir, "autoconfig"),
             ["core_options_path"] = paths.CoreOptionsCfg,
             ["global_core_options"] = "true",
             ["log_dir"] = paths.LogsDir,
 
             // Màn hình
             ["video_fullscreen"] = settings.Fullscreen ? "true" : "false",
-            ["video_driver"] = useVulkan ? "vulkan" : "gl",
+            ["video_driver"] = useVulkan ? "vulkan" : OsPlatform.FallbackVideoDriver(paths.Os),
 
             // Thoát game: giữ START + SELECT trên tay cầm, hoặc Esc trên bàn phím
             ["input_quit_gamepad_combo"] = QuitComboStartSelect,
@@ -55,8 +52,7 @@ public static class RetroArchConfig
             ["menu_toggle_gamepad_combo"] = MenuComboL3R3,
             ["input_menu_toggle"] = "f1",
 
-            // Tay cầm Xbox/XInput mặc định, tự nhận cấu hình
-            ["input_joypad_driver"] = "xinput",
+            // Tay cầm tự nhận cấu hình
             ["input_autodetect_enable"] = "true",
 
             // Tắt thông báo kỹ thuật
@@ -79,6 +75,17 @@ public static class RetroArchConfig
             // Game Center tự quản lý lịch sử chơi; không để RetroArch ghi playlist vào thư mục cài đặt
             ["history_list_enable"] = "false",
         };
+
+        // Thư mục đi kèm RetroArch (Windows/Linux); macOS dùng mặc định bên trong RetroArch.app
+        if (paths.RetroArchResourceDir is { } res)
+        {
+            keys["libretro_info_path"] = Path.Combine(res, "info");
+            keys["assets_directory"] = Path.Combine(res, "assets");
+            keys["joypad_autoconfig_dir"] = Path.Combine(res, "autoconfig");
+        }
+        // Driver tay cầm: Windows XInput, Linux udev, macOS để RetroArch tự chọn
+        if (OsPlatform.JoypadDriver(paths.Os) is { } joypad)
+            keys["input_joypad_driver"] = joypad;
 
         // Bàn phím người chơi 1 (luôn ghi, để bàn phím dùng được song song với tay cầm)
         foreach (var (button, key) in KeyboardLayout.Resolve(settings.KeyBindings))
@@ -121,7 +128,7 @@ public static class RetroArchConfig
 
     public static void Write(AppPaths paths, AppSettings settings)
     {
-        bool vulkan = IsVulkanAvailable();
+        bool vulkan = OsPlatform.IsVulkanAvailable(paths.Os);
         MergeWrite(paths.RetroArchCfg, ManagedKeys(paths, settings, vulkan), paths.RetroArchBaseCfg);
         MergeWrite(paths.CoreOptionsCfg, ManagedCoreOptions(settings, vulkan), null);
     }
@@ -167,12 +174,5 @@ public static class RetroArchConfig
             if (val.Length >= 2 && val[0] == '"' && val[^1] == '"') val = val[1..^1];
             yield return (key, val);
         }
-    }
-
-    /// <summary>Kiểm tra sơ bộ máy có driver Vulkan (vulkan-1.dll).</summary>
-    public static bool IsVulkanAvailable()
-    {
-        try { return File.Exists(Path.Combine(Environment.SystemDirectory, "vulkan-1.dll")); }
-        catch { return false; }
     }
 }

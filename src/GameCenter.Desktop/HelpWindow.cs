@@ -1,9 +1,12 @@
-using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Layout;
+using GameCenter.Core.Config;
 using GameCenter.Core.Util;
 
-namespace GameCenter.App;
+namespace GameCenter.Desktop;
 
 /// <summary>Trợ giúp: thoát game, đổi đĩa, tay cầm, BIOS, giấy phép, giới thiệu.</summary>
 public sealed class HelpWindow : Window
@@ -12,11 +15,10 @@ public sealed class HelpWindow : Window
     {
         Title = "Trợ giúp";
         Width = 900;
-        Height = Math.Min(900, SystemParameters.WorkArea.Height * 0.95);
+        Height = 860;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        Background = (System.Windows.Media.Brush)Application.Current.Resources["Bg"];
-        Foreground = (System.Windows.Media.Brush)Application.Current.Resources["Fg"];
         Dialogs.AttachGamepad(this);
+        KeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
 
         var root = new StackPanel { Margin = new Thickness(32) };
         root.Children.Add(Dialogs.Heading("Trợ giúp"));
@@ -41,22 +43,22 @@ public sealed class HelpWindow : Window
             "Game PS1 chơi được ngay mà không cần BIOS.\n" +
             "Nếu muốn tương thích tốt hơn, bạn có thể thêm file BIOS mà bạn tự sao lưu hợp pháp từ máy của mình vào thư mục BIOS. " +
             "Game Center không cung cấp và không tải BIOS.");
-        root.Children.Add(Dialogs.Button("🧩  Mở thư mục BIOS", (_, _) => MainWindow.OpenFolder(App.Paths.BiosDir)));
+        root.Children.Add(Dialogs.Row(Dialogs.Button("🧩  Mở thư mục BIOS", (_, _) => MainWindow.OpenFolder(App.Paths.BiosDir))));
 
         Add(root, "Khi gặp lỗi",
             "Game Center ghi lại lỗi trong thư mục Logs. Khi cần hỗ trợ, hãy gửi file gamecenter.log trong thư mục đó.");
-        root.Children.Add(Dialogs.Button("📄  Mở thư mục Logs", (_, _) => MainWindow.OpenFolder(App.Paths.LogsDir)));
+        root.Children.Add(Dialogs.Row(Dialogs.Button("📄  Mở thư mục Logs", (_, _) => MainWindow.OpenFolder(App.Paths.LogsDir))));
 
-        // --- Giấy phép (mục 17.2: ghi rõ thành phần nguồn mở)
         Add(root, "Giới thiệu",
             $"Game Center phiên bản {AppInfo.Version}\nTác giả: {AppInfo.Author}  ·  {AppInfo.Contact}");
 
+        // --- Giấy phép (mục 17.2: ghi rõ thành phần nguồn mở)
         Add(root, "Giấy phép",
             "Game Center là phần mềm miễn phí: không bán, không quảng cáo, không có tính năng trả phí.\n" +
             "Game Center dùng các thành phần nguồn mở sau, mỗi thành phần giữ giấy phép riêng:\n" +
             "• RetroArch — GPLv3\n• Beetle PSX HW (PS1) — GPLv2\n• Gambatte (GB/GBC) — GPLv2\n• mGBA (GBA) — MPL 2.0\n" +
             "• Snes9x (SNES) — giấy phép phi thương mại riêng\n• Genesis Plus GX (Mega Drive) — giấy phép phi thương mại riêng\n" +
-            "• FCEUmm (NES) — GPLv2\n\n" +
+            "• FCEUmm (NES) — GPLv2\n• SDL2 (đọc tay cầm) — zlib\n\n" +
             "Game Center không phải sản phẩm chính thức của Sony, Nintendo hay Sega. Bộ cài không kèm game hay BIOS thương mại.");
         var licenseList = new WrapPanel();
         if (Directory.Exists(App.Paths.LicensesDir))
@@ -75,22 +77,18 @@ public sealed class HelpWindow : Window
         root.Children.Add(close);
 
         Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        Loaded += (_, _) => close.Focus();
+        Opened += (_, _) => close.Focus(NavigationMethod.Directional);
     }
 
     private static void Add(Panel root, string title, string text)
     {
-        root.Children.Add(new TextBlock
-        {
-            Text = title, FontSize = 26, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 20, 0, 8),
-            Foreground = (System.Windows.Media.Brush)Application.Current.Resources["Accent"],
-        });
+        root.Children.Add(Dialogs.Section(title));
         root.Children.Add(Dialogs.Para(text, 21));
     }
 
     private static void OpenText(string file)
     {
-        try { Process.Start(new ProcessStartInfo("notepad.exe") { ArgumentList = { file }, UseShellExecute = false }); }
+        try { OsPlatform.OpenFile(file); }
         catch (Exception ex) { Log.Error("Không mở được file giấy phép", ex); }
     }
 
@@ -103,6 +101,6 @@ public sealed class HelpWindow : Window
         "Tiến trình chơi được giữ nguyên.";
 
     /// <summary>Hướng dẫn đổi đĩa ngắn, hiện khi chạy game nhiều đĩa (mục 8.3).</summary>
-    public static void ShowDiscGuide(Window owner) =>
+    public static Task ShowDiscGuide(Window owner) =>
         Dialogs.Info(owner, "Game này có nhiều đĩa", DiscGuideText);
 }

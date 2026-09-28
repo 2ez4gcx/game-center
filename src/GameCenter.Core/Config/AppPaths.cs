@@ -9,17 +9,24 @@ public sealed class AppPaths
 {
     public string AppDir { get; }
     public string DataDir { get; }
+    public Os Os { get; }
 
-    public AppPaths(string appDir, string dataDir)
+    public AppPaths(string appDir, string dataDir, Os? os = null)
     {
         AppDir = Path.GetFullPath(appDir);
         DataDir = Path.GetFullPath(dataDir);
+        Os = os ?? OsPlatform.Current;
     }
 
     // --- Thư mục ứng dụng ---
-    public string RetroArchDir => Path.Combine(AppDir, "Emulators", "RetroArch");
-    public string RetroArchExe => Path.Combine(RetroArchDir, "retroarch.exe");
-    public string CoresDir => Path.Combine(RetroArchDir, "cores");
+    public string EmulatorsDir => Path.Combine(AppDir, "Emulators");
+    public string RetroArchExe => OsPlatform.RetroArchExe(EmulatorsDir, Os);
+    /// <summary>Thư mục làm việc khi chạy RetroArch.</summary>
+    public string RetroArchDir => Path.GetDirectoryName(RetroArchExe)!;
+    /// <summary>Thư mục info/assets/autoconfig đi kèm RetroArch (null trên macOS: nằm trong RetroArch.app).</summary>
+    public string? RetroArchResourceDir => OsPlatform.RetroArchResourceDir(EmulatorsDir, Os);
+    public string CoresDir => OsPlatform.CoresDir(EmulatorsDir, Os);
+    public string CorePath(string coreInCatalog) => Path.Combine(CoresDir, OsPlatform.CoreFileName(coreInCatalog, Os));
     public string DefaultsDir => Path.Combine(AppDir, "Defaults");
     public string PlatformsJson => Path.Combine(DefaultsDir, "platforms.json");
     public string RetroArchBaseCfg => Path.Combine(DefaultsDir, "retroarch-base.cfg");
@@ -62,8 +69,9 @@ public sealed class AppPaths
     /// Mặc định: dữ liệu (Games, Saves, BIOS...) nằm ngay trong thư mục cài đặt,
     /// để người dùng chỉ cần nhớ một chỗ. Không ghi được thì dùng %USERPROFILE%\GameCenter.
     /// </summary>
-    public static string DefaultDataDir(string appDir) =>
-        IsWritable(appDir) ? Path.GetFullPath(appDir) : FallbackDataDir;
+    public static string DefaultDataDir(string appDir, Os? os = null) =>
+        // macOS: app nằm trong bundle .app (ghi vào sẽ hỏng chữ ký); Linux: AppImage chỉ đọc
+        (os ?? OsPlatform.Current) == Os.Windows && IsWritable(appDir) ? Path.GetFullPath(appDir) : FallbackDataDir;
 
     public static bool IsWritable(string dir)
     {

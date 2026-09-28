@@ -1,0 +1,93 @@
+# Build Game Center cho Windows, Linux và macOS.
+# - Mỗi lần push / pull request: chạy kiểm thử trên cả 3 hệ điều hành.
+# - Khi push tag "v*" (ví dụ v0.2.0): đóng gói 3 hệ và tạo bản nháp GitHub Release.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  RA_VERSION: "1.22.2"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - run: dotnet test tests/GameCenter.Tests
+      - run: dotnet build src/GameCenter.Desktop -c Release
+
+  windows:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - name: Build
+        shell: pwsh
+        run: ./build.ps1
+      - name: RetroArch + core
+        shell: pwsh
+        run: ./tools/fetch-retroarch.ps1 -Version $env:RA_VERSION
+      - name: Bộ cài
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\GameCenter.iss
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: publish/GameCenter-Setup-*.exe }
+
+  linux:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - run: sudo apt-get update && sudo apt-get install -y p7zip-full unzip
+      - run: bash tools/package-linux.sh "$RA_VERSION"
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: publish/linux/*.AppImage }
+
+  macos:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, x86_64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - run: bash tools/package-macos.sh ${{ matrix.arch }} "$RA_VERSION"
+      - uses: actions/upload-artifact@v4
+        with: { name: macos-${{ matrix.arch }}, path: publish/macos/*.dmg }
+
+  release:
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      # Bản nháp: kiểm tra rồi mới bấm Publish trên GitHub
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: dist/*

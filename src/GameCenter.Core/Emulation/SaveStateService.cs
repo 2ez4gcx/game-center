@@ -17,7 +17,9 @@ public sealed class SaveStateService
     {
         int hash = launchFile.IndexOf(".zip#", StringComparison.OrdinalIgnoreCase);
         var file = hash >= 0 ? launchFile[(hash + 5)..] : launchFile;
-        return Path.GetFileNameWithoutExtension(file.Replace('/', Path.DirectorySeparatorChar));
+        // Chấp nhận cả "\" và "/" để kết quả giống nhau trên mọi hệ điều hành
+        int slash = file.LastIndexOfAny(new[] { '\\', '/' });
+        return Path.GetFileNameWithoutExtension(slash >= 0 ? file[(slash + 1)..] : file);
     }
 
     /// <summary>File save state tự động của game (tìm trong mọi thư mục con theo core).</summary>

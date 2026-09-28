@@ -1,11 +1,10 @@
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using GameCenter.Core.Data;
 using GameCenter.Core.Scanning;
 
-namespace GameCenter.App;
+namespace GameCenter.Desktop;
 
 /// <summary>Một dòng trong danh sách game.</summary>
 public sealed class GameItem : INotifyPropertyChanged
@@ -42,11 +41,15 @@ public sealed class GameItem : INotifyPropertyChanged
         _ => Color.FromRgb(0xFF, 0x98, 0x00),
     };
 
-    public Brush PlatformBrush => Freeze(new SolidColorBrush(PlatformColor));
-    public Brush PlatformBrushFaint => Freeze(new SolidColorBrush(Color.FromArgb(0x26, PlatformColor.R, PlatformColor.G, PlatformColor.B)));
-    public Brush FavoriteBrush => Record.IsFavorite ? Freeze(new SolidColorBrush(Color.FromRgb(0xFF, 0xD7, 0x40))) : Brushes.White;
-
-    private static Brush Freeze(Brush b) { b.Freeze(); return b; }
+    public IBrush PlatformBrush => new SolidColorBrush(PlatformColor);
+    public IBrush PlatformBrushFaint => new SolidColorBrush(Color.FromArgb(0x26, PlatformColor.R, PlatformColor.G, PlatformColor.B));
+    public IBrush TileBrush => new LinearGradientBrush
+    {
+        StartPoint = new Avalonia.RelativePoint(0, 0, Avalonia.RelativeUnit.Relative),
+        EndPoint = new Avalonia.RelativePoint(1, 1, Avalonia.RelativeUnit.Relative),
+        GradientStops = { new GradientStop(PlatformColor, 0), new GradientStop(Color.FromRgb(0x0B, 0x13, 0x28), 1.1) },
+    };
+    public IBrush FavoriteBrush => Record.IsFavorite ? new SolidColorBrush(Color.FromRgb(0xFF, 0xD7, 0x40)) : Brushes.White;
 
     /// <summary>Thông tin phụ (không gồm tên hệ máy, đã có chip riêng).</summary>
     public string Meta
@@ -62,18 +65,6 @@ public sealed class GameItem : INotifyPropertyChanged
         }
     }
 
-    public string Subtitle
-    {
-        get
-        {
-            var parts = new List<string> { PlatformName };
-            if (Record.DiscCount >= 2) parts.Add($"{Record.DiscCount} đĩa");
-            if (Record.LastPlayedAt != null && DateTime.TryParse(Record.LastPlayedAt, out var d))
-                parts.Add($"chơi lần cuối {d:dd/MM/yyyy}");
-            return string.Join("  •  ", parts);
-        }
-    }
-
     public string? Warning => Record.ScanStatus switch
     {
         ScanStatus.BrokenCue => "⚠ " + (Record.ScanMessage ?? "File game bị thiếu."),
@@ -81,15 +72,15 @@ public sealed class GameItem : INotifyPropertyChanged
         _ => null,
     };
 
-    public Visibility WarningVisibility => Warning == null ? Visibility.Collapsed : Visibility.Visible;
+    public bool HasWarning => Warning != null;
     public string FavoriteIcon => Record.IsFavorite ? "★" : "☆";
     public string PlayLabel => IsUnknown ? "Chọn hệ máy" : "▶  CHƠI";
 
-    private ImageSource? _cover;
+    private Bitmap? _cover;
     private bool _coverLoaded;
 
     /// <summary>Ảnh bìa: cover_path, hoặc Covers/&lt;Platform&gt;/&lt;tên&gt;.png|jpg.</summary>
-    public ImageSource? Cover
+    public Bitmap? Cover
     {
         get
         {
@@ -99,26 +90,20 @@ public sealed class GameItem : INotifyPropertyChanged
             if (path == null || !File.Exists(path))
             {
                 var dir = Path.Combine(App.Paths.CoversDir, Record.Platform);
-                path = new[] { Record.Title, Path.GetFileNameWithoutExtension(Record.SourceFile) }
+                path = new[] { Record.Title, Path.GetFileNameWithoutExtension(GameScanner.PhysicalPath(Record.SourceFile)) }
                     .SelectMany(n => new[] { ".png", ".jpg", ".jpeg" }.Select(e => Path.Combine(dir, n + e)))
                     .FirstOrDefault(File.Exists);
             }
             if (path == null) return null;
             try
             {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad; // không khóa file
-                bmp.DecodePixelWidth = 168;
-                bmp.UriSource = new Uri(path);
-                bmp.EndInit();
-                bmp.Freeze();
-                _cover = bmp;
+                using var fs = File.OpenRead(path); // đọc hết rồi đóng, không khóa file
+                _cover = Bitmap.DecodeToWidth(fs, 176);
             }
             catch { _cover = null; }
             return _cover;
         }
     }
 
-    public void ResetCover() { _coverLoaded = false; _cover = null; }
+    public bool HasCover => Cover != null;
 }
