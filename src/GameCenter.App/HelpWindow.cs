@@ -26,8 +26,8 @@ public sealed class HelpWindow : Window
             "Game Center sẽ tự hiện lại sau khi thoát game. Game tự lưu khi bạn lưu trong game như máy thật.");
 
         Add(root, "Chơi game",
-            "1. Bấm \"Mở thư mục game\" và chép game vào đó.\n" +
-            "2. Bấm \"Quét game mới\".\n" +
+            "1. Bấm \"Mở thư mục game\" và chép game vào đó — để chung một chỗ cũng được, Game Center tự nhận ra hệ máy.\n" +
+            "2. Game mới tự hiện ra sau vài giây (hoặc bấm \"Quét game mới\").\n" +
             "3. Chọn game và bấm \"Chơi\" (hoặc nút A trên tay cầm).");
 
         Add(root, "Điều khiển Game Center bằng tay cầm",

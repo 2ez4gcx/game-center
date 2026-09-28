@@ -162,7 +162,7 @@ public partial class MainWindow : Window
             if (_all.Count == 0)
             {
                 EmptyTitle.Text = "Chưa có game nào";
-                EmptyText.Text = $"1. Bấm \"Mở thư mục game\".\n2. Chép game vào thư mục đó (ví dụ vào thư mục PS1, SNES...).\n3. Bấm \"Quét game mới\".\n\nThư mục game: {App.Paths.GamesDir}";
+                EmptyText.Text = $"1. Bấm \"Mở thư mục game\".\n2. Chép game vào thư mục đó (để chung một chỗ cũng được).\n3. Game sẽ tự hiện ra sau vài giây.\n\nThư mục game: {App.Paths.GamesDir}";
             }
             else
             {
