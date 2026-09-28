@@ -76,6 +76,8 @@ public static class RetroArchConfig
             ["sort_savestates_enable"] = "true",
             ["savestate_auto_index"] = "false",
             ["config_save_on_exit"] = "true",
+            // Game Center tự quản lý lịch sử chơi; không để RetroArch ghi playlist vào thư mục cài đặt
+            ["history_list_enable"] = "false",
         };
 
         // Bàn phím người chơi 1 (luôn ghi, để bàn phím dùng được song song với tay cầm)

@@ -1,4 +1,4 @@
-﻿; Bộ cài Game Center — Inno Setup 6
+﻿; Bộ cài Game Center — Inno Setup 7
 ; Cài theo người dùng, không cần quyền admin. Mặc định C:\GameCenter (dễ tìm), cho chọn ổ khác (ví dụ D:\GameCenter).
 ; Games, Saves, BIOS... nằm ngay trong thư mục cài đặt; gỡ cài đặt KHÔNG xóa các thư mục này.
 ; Build: ISCC installer\GameCenter.iss   (sau khi chạy build.ps1)
@@ -6,9 +6,17 @@
 #define AppName "Game Center"
 #define AppVersion "0.1.0"
 #define PublishDir "..\publish\GameCenter"
+; Cho phép build bản thử với AppId khác: ISCC /DTestBuild installer\GameCenter.iss
+#ifdef TestBuild
+  #define AppIdValue "{{6C2B7A1E-4F3D-4B8E-9A61-5E2C1D7F0A99}"
+  #define OutName "GameCenter-TEST"
+#else
+  #define AppIdValue "{{6C2B7A1E-4F3D-4B8E-9A61-5E2C1D7F0A11}"
+  #define OutName "GameCenter-Setup-" + AppVersion
+#endif
 
 [Setup]
-AppId={{6C2B7A1E-4F3D-4B8E-9A61-5E2C1D7F0A11}
+AppId={#AppIdValue}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Game Center
@@ -22,7 +30,7 @@ UsePreviousAppDir=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\publish
-OutputBaseFilename=GameCenter-Setup-{#AppVersion}
+OutputBaseFilename={#OutName}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern

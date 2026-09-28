@@ -1,10 +1,19 @@
-Game Center — phần mềm miễn phí.
+Game Center
+Bản quyền (c) 2026 2ez4gcx
 
-Game Center luôn miễn phí: không bán, không quảng cáo, không có tính năng trả phí.
-Game Center là launcher/frontend; việc giả lập do RetroArch và các core libretro thực hiện,
-mỗi thành phần giữ giấy phép riêng (xem các file trong thư mục này).
+Game Center là phần mềm MIỄN PHÍ:
+- Không bán, không quảng cáo, không có tính năng trả phí.
+- Bạn được tự do cài đặt và sử dụng cho mục đích cá nhân.
+
+Game Center là chương trình quản lý và mở game (launcher). Việc giả lập do RetroArch
+và các core libretro thực hiện; mỗi thành phần giữ giấy phép riêng, xem các file trong
+thư mục Licenses sau khi cài đặt:
+- RetroArch (GPLv3), Beetle PSX HW (GPLv2), FCEUmm (GPLv2), Gambatte (GPLv2), mGBA (MPL 2.0)
+- Snes9x và Genesis Plus GX: giấy phép phi thương mại riêng, chỉ được phân phối miễn phí.
+Mã nguồn các thành phần GPL: xem Licenses\RetroArch-SOURCE.txt.
 
 Game Center không phải sản phẩm chính thức của Sony, Nintendo hoặc Sega.
-Bộ cài không kèm ROM, ISO hoặc BIOS thương mại.
+Bộ cài KHÔNG kèm game (ROM/ISO) hoặc BIOS thương mại. Bạn chỉ nên dùng game và BIOS
+mà bạn sở hữu hợp pháp.
 
-TODO trước khi phát hành: chọn giấy phép cho mã nguồn Game Center và thay nội dung file này.
+PHẦN MỀM ĐƯỢC CUNG CẤP "NGUYÊN TRẠNG", KHÔNG KÈM BẤT KỲ BẢO ĐẢM NÀO.
