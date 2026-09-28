@@ -30,6 +30,24 @@ Tải `GameCenter-Setup-x.y.z.exe` ở mục [Releases](https://github.com/2ez4g
 
 PS1 chơi được ngay không cần BIOS (OpenBIOS). Thêm BIOS bạn tự sao lưu vào thư mục `BIOS\` để tương thích tốt hơn.
 
+## Game Center khác RetroArch thế nào?
+
+Game Center **không thay thế** RetroArch mà là lớp giao diện đơn giản đặt phía trên. Phần chạy game vẫn do RetroArch và các core của nó làm; Game Center lo mọi việc còn lại để người dùng không phải đụng tới RetroArch.
+
+| | RetroArch dùng một mình | Game Center |
+|---|---|---|
+| **Vai trò** | Trình giả lập đa hệ máy, chạy game | Launcher: quản lý game, gọi RetroArch để chơi |
+| **Cài đặt** | Tự tải từng core, tự cấu hình thư mục, BIOS, tay cầm | Bộ cài có sẵn RetroArch, 6 core và cấu hình |
+| **Thêm game** | Tự quét hoặc tạo playlist trong menu, phải chọn đúng core | Chép vào `Games`, tự nhận hệ máy và tự hiện lên |
+| **PS1** | Tự xử lý `.cue`, tự viết `.m3u` cho game nhiều đĩa | Tự ghép đĩa, tự tạo `.cue` cho `.bin` lẻ, tự tạo `.m3u` |
+| **Giao diện** | Menu nhiều tầng, chữ nhỏ, hàng trăm tùy chọn | Một màn hình, chữ lớn, nút "Chơi" |
+| **Điều khiển** | Phải tự gán phím, phím tắt mặc định dễ bấm nhầm (tua nhanh, tạm dừng…) | Phím WASD/IJKL có sẵn, đã tắt các phím tắt dễ nhầm, gán lại bằng cửa sổ đơn giản |
+| **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình (START + SELECT hoặc Esc) |
+| **Save state** | Lưu/nạp thủ công, hoặc tự động ngầm | Hỏi khi thoát và khi mở lại, bằng câu dễ hiểu |
+| **Tiện ích** | Có nhưng nằm sâu trong menu | Yêu thích, chơi gần đây, tìm kiếm không dấu, sao lưu save |
+
+Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh hoạt nhưng dành cho người rành công nghệ. **Game Center** là "vỏ bọc" dễ dùng: chép game, bấm Chơi, không cần biết emulator là gì. Người rành công nghệ vẫn có thể mở RetroArch trong thư mục cài đặt (`Emulators\RetroArch\retroarch.exe`) để chỉnh sâu hơn.
+
 ## Sử dụng
 
 **Thêm game:** chép vào thư mục `Games\`, để chung một chỗ cũng được. Game Center tự nhận ra hệ máy theo nội dung file và tự hiện game mới sau vài giây.
