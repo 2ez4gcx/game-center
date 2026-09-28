@@ -6,6 +6,8 @@ Launcher **miễn phí** cho game retro trên Windows, thiết kế cho người
 Cài đặt → Next → Finish → Chép game → Chơi
 ```
 
+![Màn hình chính Game Center](docs/anh/man-hinh-chinh.png)
+
 ## Tải về
 
 Tải `GameCenter-Setup-x.y.z.exe` ở mục [Releases](https://github.com/2ez4gcx/game-center/releases). Bộ cài đã kèm sẵn .NET 8, RetroArch và các core giả lập, không cần cài thêm gì.
@@ -48,6 +50,10 @@ PS1 chơi được ngay không cần BIOS (OpenBIOS). Thêm BIOS bạn tự sao 
 | START / SELECT | Enter / Space |
 
 Đổi phím: **Thiết lập phím** (bấm vào ô rồi nhấn phím mới).
+
+| Chế độ bàn phím | Thiết lập phím |
+|---|---|
+| ![Chế độ bàn phím](docs/anh/che-do-ban-phim.png) | ![Thiết lập phím](docs/anh/thiet-lap-phim.png) |
 
 **Thoát game:** giữ **START + SELECT** trên tay cầm, hoặc bấm **Esc**. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh.
 
@@ -92,3 +98,7 @@ Thiết kế chi tiết: [GAME_CENTER_IMPLEMENTATION.md](GAME_CENTER_IMPLEMENTAT
 ## Giấy phép
 
 Game Center miễn phí, không quảng cáo, không tính năng trả phí. RetroArch và các core giữ giấy phép riêng (xem `Licenses/`). Snes9x và Genesis Plus GX chỉ cho phép phân phối phi thương mại. Game Center không phải sản phẩm chính thức của Sony, Nintendo hay Sega.
+
+---
+
+Phát triển bởi **Khuong Doan**: <https://khuongdoan.com/>
