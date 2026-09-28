@@ -32,11 +32,56 @@ public partial class MainWindow : Window
         {
             ApplyLauncherFullscreen();
             Reload();
-            // Lần đầu (chưa có game trong database) thì tự quét
-            if (_all.Count == 0) await ScanAsync(silent: true);
+            // Mỗi lần mở đều tự quét, sau đó theo dõi thư mục game
+            await ScanAsync(silent: true);
+            StartWatching();
             GameList.Focus();
         };
-        Closed += (_, _) => _pad.Dispose();
+        Closed += (_, _) => { _pad.Dispose(); _watcher?.Dispose(); };
+    }
+
+    // ------------------------------------------------------------------ Tự quét khi thư mục game thay đổi
+
+    private FileSystemWatcher? _watcher;
+    private System.Windows.Threading.DispatcherTimer? _rescanTimer;
+    private bool _scanning;
+    private bool _rescanPending;
+
+    private void StartWatching()
+    {
+        try
+        {
+            // Chờ 3 giây sau thay đổi cuối cùng (chép game lớn tạo rất nhiều sự kiện)
+            _rescanTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            _rescanTimer.Tick += async (_, _) =>
+            {
+                _rescanTimer.Stop();
+                if (_gameRunning || _scanning) { _rescanPending = true; return; }
+                await ScanAsync(silent: true);
+            };
+
+            _watcher = new FileSystemWatcher(App.Paths.GamesDir)
+            {
+                IncludeSubdirectories = true,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size | NotifyFilters.LastWrite,
+                InternalBufferSize = 64 * 1024,
+            };
+            FileSystemEventHandler onChange = (_, _) => Dispatcher.BeginInvoke(RequestRescan);
+            _watcher.Created += onChange;
+            _watcher.Deleted += onChange;
+            _watcher.Changed += onChange;
+            _watcher.Renamed += (_, _) => Dispatcher.BeginInvoke(RequestRescan);
+            _watcher.Error += (_, e) => { Log.Warn($"Theo dõi thư mục game lỗi: {e.GetException().Message}"); Dispatcher.BeginInvoke(RequestRescan); };
+            _watcher.EnableRaisingEvents = true;
+        }
+        catch (Exception ex) { Log.Error("Không theo dõi được thư mục game", ex); }
+    }
+
+    private void RequestRescan()
+    {
+        if (_rescanTimer == null) return;
+        _rescanTimer.Stop();
+        _rescanTimer.Start();
     }
 
     public void ApplyLauncherFullscreen()
@@ -149,8 +194,11 @@ public partial class MainWindow : Window
 
     private async Task ScanAsync(bool silent)
     {
+        if (_scanning) { _rescanPending = true; return; }
+        _scanning = true;
         StatusText.Text = "Đang quét game...";
-        IsEnabled = false;
+        // Quét tự động không khóa giao diện
+        if (!silent) IsEnabled = false;
         try
         {
             var scanner = new GameScanner(App.Catalog, App.Paths.GamesDir, App.Paths.PlaylistsDir);
@@ -174,8 +222,9 @@ public partial class MainWindow : Window
         }
         finally
         {
-            IsEnabled = true;
-            GameList.Focus();
+            _scanning = false;
+            if (!silent) { IsEnabled = true; GameList.Focus(); }
+            if (_rescanPending && !_gameRunning) { _rescanPending = false; RequestRescan(); }
         }
     }
 
@@ -233,6 +282,7 @@ public partial class MainWindow : Window
             BringToFront();
             Reload(item.Record.Id);
             GameList.Focus();
+            if (_rescanPending) { _rescanPending = false; RequestRescan(); }
         }
     }
 
