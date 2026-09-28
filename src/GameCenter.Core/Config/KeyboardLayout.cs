@@ -28,8 +28,8 @@ public static class KeyboardLayout
         new("select", "SELECT",     "chọn",                  "space"),
     };
 
-    /// <summary>Phím hệ thống, không cho gán vào nút game.</summary>
-    public static readonly IReadOnlySet<string> Reserved = new HashSet<string> { "escape", "f1" };
+    /// <summary>Phím hệ thống, không cho gán vào nút game: Esc thoát, F1 menu, F2/F4 lưu/tải nhanh.</summary>
+    public static readonly IReadOnlySet<string> Reserved = new HashSet<string> { "escape", "f1", "f2", "f4" };
 
     /// <summary>
     /// Phím tắt mặc định của RetroArch trùng với sơ đồ trên (ví dụ K = frame advance, L = tua nhanh,

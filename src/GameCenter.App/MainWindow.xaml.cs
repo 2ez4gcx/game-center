@@ -340,6 +340,11 @@ public partial class MainWindow : Window
         if (item.Record.DiscCount >= 2 && App.Settings.ShowDiscChangeGuide && !App.Settings.UseUserDuckStation)
             HelpWindow.ShowDiscGuide(this);
 
+        // RetroArch ghi lại toàn bộ cấu hình khi thoát (kể cả giá trị từ --appendconfig của lần trước),
+        // nên ghi lại cấu hình chuẩn trước mỗi lần chạy.
+        try { RetroArchConfig.Write(App.Paths, App.Settings); }
+        catch (Exception ex) { Log.Error("Không ghi được retroarch.cfg", ex); }
+
         // Save state của giả lập: hỏi chơi tiếp hay chơi từ đầu (save trong game luôn được giữ)
         bool useStates = App.Settings.AskSaveStateOnExit && !App.Settings.UseUserDuckStation;
         var states = new SaveStateService(App.Paths.StatesDir);

@@ -349,3 +349,15 @@ public class SaveStateTests
         Assert.Empty(Directory.GetFiles(core, "*.gcbak"));
     }
 }
+
+public class KeyboardTests
+{
+    [Fact]
+    public void SystemKeys_CannotBeAssigned_FallBackToDefault()
+    {
+        var map = KeyboardLayout.Resolve(new Dictionary<string, string> { ["a"] = "f2", ["b"] = "escape", ["x"] = "num1" });
+        Assert.Equal("l", map["a"]);
+        Assert.Equal("k", map["b"]);
+        Assert.Equal("num1", map["x"]);
+    }
+}

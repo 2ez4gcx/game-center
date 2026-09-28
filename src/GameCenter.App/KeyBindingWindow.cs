@@ -36,7 +36,7 @@ public sealed class KeyBindingWindow : Window
 
         var root = new StackPanel { Margin = new Thickness(32, 26, 32, 26) };
         root.Children.Add(Dialogs.Heading("⌨  Thiết lập phím"));
-        root.Children.Add(Dialogs.Para("Bấm vào ô phím rồi nhấn phím bạn muốn dùng. Esc (thoát game) và F1 (menu) là phím hệ thống, không đổi được.", 19));
+        root.Children.Add(Dialogs.Para("Bấm vào ô phím rồi nhấn phím bạn muốn dùng. Esc (thoát game), F1 (menu), F2 / F4 (lưu / tải nhanh) là phím hệ thống, không đổi được.", 19));
 
         var cols = new Grid { Margin = new Thickness(0, 8, 0, 0) };
         cols.ColumnDefinitions.Add(new ColumnDefinition());
