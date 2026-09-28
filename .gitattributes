@@ -1,0 +1,3 @@
+# Script Linux / macOS luôn dùng xuống dòng LF, kể cả khi checkout trên Windows
+*.sh text eol=lf
+*.yml text eol=lf
