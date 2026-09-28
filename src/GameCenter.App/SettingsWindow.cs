@@ -11,7 +11,7 @@ namespace GameCenter.App;
 /// <summary>Cài đặt: một trang, không menu lồng nhau.</summary>
 public sealed class SettingsWindow : Window
 {
-    private readonly CheckBox _fullscreen, _launcherFs, _discGuide, _useDuck;
+    private readonly CheckBox _fullscreen, _launcherFs, _discGuide, _useDuck, _resume;
     private readonly ComboBox _renderer;
     private readonly TextBox _duckPath;
     private readonly TextBlock _dataDir;
@@ -24,6 +24,7 @@ public sealed class SettingsWindow : Window
         Height = Math.Min(900, SystemParameters.WorkArea.Height * 0.95);
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Background = (System.Windows.Media.Brush)Application.Current.Resources["Bg"];
+        Foreground = (System.Windows.Media.Brush)Application.Current.Resources["Fg"];
         Dialogs.AttachGamepad(this);
 
         var s = App.Settings;
@@ -39,10 +40,18 @@ public sealed class SettingsWindow : Window
         root.Children.Add(_launcherFs);
         root.Children.Add(_discGuide);
 
+        // --- Save game
+        root.Children.Add(Section("Lưu game"));
+        _resume = new CheckBox { Content = "Khi thoát game, hỏi có muốn lưu lại chỗ đang chơi không", IsChecked = s.AskSaveStateOnExit };
+        root.Children.Add(_resume);
+        root.Children.Add(Dialogs.Para("Save trong game (lưu vào memory card, lưu trong băng) luôn được giữ tự động, không cần làm gì thêm. Lưu chỗ đang chơi là tính năng thêm của giả lập, giúp chơi tiếp ở đúng khoảnh khắc đã thoát.", 18));
+
         // --- Tay cầm
-        root.Children.Add(Section("Tay cầm"));
-        root.Children.Add(Dialogs.Para("Tay cầm Xbox và tay cầm tương thích dùng được ngay. Cấu hình một lần là dùng cho mọi hệ máy.", 20));
-        root.Children.Add(Row(Dialogs.Button("🎮  Cấu hình tay cầm", (_, _) => OpenRetroArchMenu())));
+        root.Children.Add(Section("Điều khiển"));
+        root.Children.Add(Dialogs.Para("Tay cầm Xbox và tay cầm tương thích dùng được ngay. Bàn phím dùng song song được với tay cầm. Cấu hình một lần là dùng cho mọi hệ máy.", 20));
+        root.Children.Add(Row(
+            Dialogs.Button("🎮  Cấu hình tay cầm", (_, _) => OpenRetroArchMenu(this)),
+            Dialogs.Button("⌨  Thiết lập phím", (_, _) => new KeyBindingWindow { Owner = this }.ShowDialog())));
 
         // --- Dữ liệu
         root.Children.Add(Section("Dữ liệu"));
@@ -99,15 +108,15 @@ public sealed class SettingsWindow : Window
         return p;
     }
 
-    private void OpenRetroArchMenu()
+    public static void OpenRetroArchMenu(Window owner)
     {
         var psi = new EmulatorLauncher(App.Paths, App.Catalog, App.Settings).BuildMenuStartInfo();
         if (psi == null)
         {
-            Dialogs.Info(this, "Thiếu RetroArch", "Không tìm thấy RetroArch trong thư mục cài đặt. Hãy cài lại Game Center.");
+            Dialogs.Info(owner, "Thiếu RetroArch", "Không tìm thấy RetroArch trong thư mục cài đặt. Hãy cài lại Game Center.");
             return;
         }
-        Dialogs.Info(this, "Cấu hình tay cầm",
+        Dialogs.Info(owner, "Cấu hình tay cầm",
             "Cửa sổ giả lập sẽ mở ra.\n\nVào: Cài đặt → Đầu vào → Điều khiển cổng 1 → Gán tất cả nút.\nBấm lần lượt từng nút trên tay cầm theo hướng dẫn.\n\nXong thì đóng cửa sổ giả lập (Esc).");
         try { Process.Start(psi); }
         catch (Exception ex) { Log.Error("Không mở được RetroArch", ex); }
@@ -148,6 +157,7 @@ public sealed class SettingsWindow : Window
         s.Fullscreen = _fullscreen.IsChecked == true;
         s.LauncherFullscreen = _launcherFs.IsChecked == true;
         s.ShowDiscChangeGuide = _discGuide.IsChecked == true;
+        s.AskSaveStateOnExit = _resume.IsChecked == true;
         s.Ps1Renderer = (string)((ComboBoxItem)_renderer.SelectedItem).Tag;
         s.UseUserDuckStation = _useDuck.IsChecked == true;
         s.DuckStationPath = string.IsNullOrWhiteSpace(_duckPath.Text) ? null : _duckPath.Text.Trim();

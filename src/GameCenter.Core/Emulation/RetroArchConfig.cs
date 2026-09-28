@@ -28,7 +28,7 @@ public static class RetroArchConfig
             _ => vulkanAvailable,
         };
 
-        return new Dictionary<string, string>
+        var keys = new Dictionary<string, string>
         {
             // Thư mục
             ["savefile_directory"] = paths.SavesDir,
@@ -77,6 +77,28 @@ public static class RetroArchConfig
             ["savestate_auto_index"] = "false",
             ["config_save_on_exit"] = "true",
         };
+
+        // Bàn phím người chơi 1 (luôn ghi, để bàn phím dùng được song song với tay cầm)
+        foreach (var (button, key) in KeyboardLayout.Resolve(settings.KeyBindings))
+            keys[$"input_player1_{button}"] = key;
+        // Tay cầm ảo không dùng analog trên bàn phím
+        foreach (var axis in new[] { "l_x_plus", "l_x_minus", "l_y_plus", "l_y_minus", "r_x_plus", "r_x_minus", "r_y_plus", "r_y_minus", "l3", "r3" })
+            keys[$"input_player1_{axis}"] = "nul";
+        foreach (var hk in KeyboardLayout.HotkeysToDisable)
+            keys[hk] = "nul";
+        // Save game:
+        // - Save trong game (SRAM, memory card PS1) ghi xuống ổ mỗi 10 giây, không mất khi máy tắt đột ngột.
+        // - Save state: RetroArch chụp lại khi thoát, Game Center hỏi người chơi giữ hay bỏ.
+        //   Không tự nạp: chỉ nạp khi người chơi chọn "Chơi tiếp" (Game Center truyền --appendconfig).
+        keys["autosave_interval"] = "10";
+        keys["block_sram_overwrite"] = "false";
+        keys["savestate_auto_save"] = settings.AskSaveStateOnExit ? "true" : "false";
+        keys["savestate_auto_load"] = "false";
+        keys["savestate_auto_index"] = "false";
+        // Lưu / tải nhanh: F2 / F4
+        keys["input_save_state"] = "f2";
+        keys["input_load_state"] = "f4";
+        return keys;
     }
 
     /// <summary>Tùy chọn core (retroarch-core-options.cfg).</summary>

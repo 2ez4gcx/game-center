@@ -12,7 +12,7 @@ namespace GameCenter.App;
 /// </summary>
 public static class Dialogs
 {
-    public static Window CreateWindow(Window? owner, string title, double width = 720)
+    public static Window CreateWindow(Window? owner, string title, double width = 720, bool cancellable = true)
     {
         var w = new Window
         {
@@ -22,17 +22,25 @@ public static class Dialogs
             MaxHeight = SystemParameters.WorkArea.Height * 0.95,
             WindowStartupLocation = owner != null && owner.IsVisible ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen,
             Background = (Brush)Application.Current.Resources["Bg"],
+            Foreground = (Brush)Application.Current.Resources["Fg"],
             ResizeMode = ResizeMode.NoResize,
             ShowInTaskbar = owner == null || !owner.IsVisible,
             FontSize = 20,
         };
         if (owner != null && owner.IsVisible) w.Owner = owner;
-        AttachGamepad(w);
-        w.PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) { w.DialogResult ??= false; w.Close(); } };
+        AttachGamepad(w, cancellable);
+        // Không cho đóng bằng Esc khi bắt buộc chọn (ví dụ ngay sau khi bấm Esc thoát game)
+        w.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Escape) return;
+            e.Handled = true;
+            if (cancellable) { w.DialogResult ??= false; w.Close(); }
+        };
+        if (!cancellable) w.Closing += (_, e) => { if (w.DialogResult == null) e.Cancel = true; };
         return w;
     }
 
-    public static void AttachGamepad(Window w)
+    public static void AttachGamepad(Window w, bool cancellable = true)
     {
         var pad = new Gamepad { IsEnabled = () => w.IsActive };
         pad.Pressed += b =>
@@ -45,7 +53,7 @@ public static class Dialogs
                     else if (focused is ToggleButton tb) tb.IsChecked = !tb.IsChecked;
                     break;
                 case PadButton.B:
-                    w.Close();
+                    if (cancellable) w.Close();
                     break;
                 case PadButton.Up:
                 case PadButton.Left:
@@ -103,9 +111,9 @@ public static class Dialogs
         w.ShowDialog();
     }
 
-    public static bool Confirm(Window? owner, string title, string message, string yes = "Đồng ý", string no = "Không")
+    public static bool Confirm(Window? owner, string title, string message, string yes = "Đồng ý", string no = "Không", bool cancellable = true)
     {
-        var w = CreateWindow(owner, title);
+        var w = CreateWindow(owner, title, cancellable: cancellable);
         var root = Shell(w, title, message, out var buttons);
         var yesBtn = Button(yes, (_, _) => { w.DialogResult = true; }, primary: true);
         buttons.Children.Add(yesBtn);

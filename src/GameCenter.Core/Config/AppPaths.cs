@@ -54,14 +54,34 @@ public sealed class AppPaths
 
     // --- Vị trí thư mục dữ liệu (người dùng có thể đổi trong Cài đặt) ---
 
-    public static string DefaultDataDir =>
+    /// <summary>Dự phòng khi thư mục cài đặt không ghi được (ví dụ cài vào Program Files).</summary>
+    public static string FallbackDataDir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GameCenter");
+
+    /// <summary>
+    /// Mặc định: dữ liệu (Games, Saves, BIOS...) nằm ngay trong thư mục cài đặt,
+    /// để người dùng chỉ cần nhớ một chỗ. Không ghi được thì dùng %USERPROFILE%\GameCenter.
+    /// </summary>
+    public static string DefaultDataDir(string appDir) =>
+        IsWritable(appDir) ? Path.GetFullPath(appDir) : FallbackDataDir;
+
+    public static bool IsWritable(string dir)
+    {
+        try
+        {
+            var probe = Path.Combine(dir, $".write-test-{Guid.NewGuid():N}");
+            File.WriteAllText(probe, "");
+            File.Delete(probe);
+            return true;
+        }
+        catch { return false; }
+    }
 
     /// <summary>File nhỏ ghi nhớ thư mục dữ liệu đã chọn.</summary>
     public static string LocationFile =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GameCenter", "location.json");
 
-    public static string ResolveDataDir()
+    public static string ResolveDataDir(string appDir)
     {
         // Dùng cho kiểm thử / bản portable
         var env = Environment.GetEnvironmentVariable("GAMECENTER_DATA_DIR");
@@ -76,7 +96,9 @@ public sealed class AppPaths
             }
         }
         catch { /* dùng mặc định */ }
-        return DefaultDataDir;
+        // Tương thích bản cũ: đã có dữ liệu ở %USERPROFILE%\GameCenter thì dùng tiếp, không bỏ rơi game và save
+        if (File.Exists(Path.Combine(FallbackDataDir, "Database", "games.db"))) return FallbackDataDir;
+        return DefaultDataDir(appDir);
     }
 
     public static void SaveDataDirLocation(string dataDir)

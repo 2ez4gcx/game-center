@@ -22,7 +22,45 @@ public sealed class GameItem : INotifyPropertyChanged
     public string PlatformName =>
         IsUnknown ? "Chưa nhận ra" : App.Catalog.Get(Record.Platform)?.DisplayName ?? Record.Platform;
 
-    public string PlatformShort => IsUnknown ? "?" : PlatformName;
+    public string PlatformShort => Record.Platform switch
+    {
+        "MegaDrive" => "MD",
+        GameDatabase.UnknownPlatform => "?",
+        _ => Record.Platform,
+    };
+
+    /// <summary>Màu nhận diện từng hệ máy.</summary>
+    public Color PlatformColor => Record.Platform switch
+    {
+        "NES" => Color.FromRgb(0xFF, 0x52, 0x52),
+        "SNES" => Color.FromRgb(0xB3, 0x88, 0xFF),
+        "GB" => Color.FromRgb(0x9C, 0xCC, 0x65),
+        "GBC" => Color.FromRgb(0x1D, 0xE9, 0xB6),
+        "GBA" => Color.FromRgb(0x7C, 0x8C, 0xFF),
+        "MegaDrive" => Color.FromRgb(0x40, 0xC4, 0xFF),
+        "PS1" => Color.FromRgb(0xFF, 0xD7, 0x40),
+        _ => Color.FromRgb(0xFF, 0x98, 0x00),
+    };
+
+    public Brush PlatformBrush => Freeze(new SolidColorBrush(PlatformColor));
+    public Brush PlatformBrushFaint => Freeze(new SolidColorBrush(Color.FromArgb(0x26, PlatformColor.R, PlatformColor.G, PlatformColor.B)));
+    public Brush FavoriteBrush => Record.IsFavorite ? Freeze(new SolidColorBrush(Color.FromRgb(0xFF, 0xD7, 0x40))) : Brushes.White;
+
+    private static Brush Freeze(Brush b) { b.Freeze(); return b; }
+
+    /// <summary>Thông tin phụ (không gồm tên hệ máy, đã có chip riêng).</summary>
+    public string Meta
+    {
+        get
+        {
+            var parts = new List<string>();
+            if (Record.DiscCount >= 2) parts.Add($"{Record.DiscCount} đĩa");
+            if (Record.PlayCount > 0) parts.Add($"đã chơi {Record.PlayCount} lần");
+            if (Record.LastPlayedAt != null && DateTime.TryParse(Record.LastPlayedAt, out var d))
+                parts.Add($"lần cuối {d:dd/MM/yyyy}");
+            return string.Join("  ·  ", parts);
+        }
+    }
 
     public string Subtitle
     {
@@ -45,7 +83,7 @@ public sealed class GameItem : INotifyPropertyChanged
 
     public Visibility WarningVisibility => Warning == null ? Visibility.Collapsed : Visibility.Visible;
     public string FavoriteIcon => Record.IsFavorite ? "★" : "☆";
-    public string PlayLabel => IsUnknown ? "Chọn hệ máy" : "▶  Chơi";
+    public string PlayLabel => IsUnknown ? "Chọn hệ máy" : "▶  CHƠI";
 
     private ImageSource? _cover;
     private bool _coverLoaded;

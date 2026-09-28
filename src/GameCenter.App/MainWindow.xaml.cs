@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using GameCenter.Core.Config;
 using GameCenter.Core.Data;
 using GameCenter.Core.Emulation;
 using GameCenter.Core.Scanning;
@@ -26,10 +28,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // Vừa màn hình nhỏ / scale 125–150%
+        Height = Math.Min(Height, SystemParameters.WorkArea.Height * 0.94);
+        Width = Math.Min(Width, SystemParameters.WorkArea.Width * 0.96);
         _pad = new Gamepad { IsEnabled = () => IsActive && !_gameRunning };
         _pad.Pressed += OnPad;
+        _pad.ConnectionChanged += _ => UpdateControlUi();
         Loaded += async (_, _) =>
         {
+            (App.Settings.ControlMode == ControlModes.Keyboard ? ModeKeyboard : ModeGamepad).IsChecked = true;
+            UpdateControlUi();
+            AuthorText.Text = $"Game Center v{AppInfo.Version}  ·  by {AppInfo.Author}";
             ApplyLauncherFullscreen();
             Reload();
             // Mỗi lần mở đều tự quét, sau đó theo dõi thư mục game
@@ -38,6 +47,49 @@ public partial class MainWindow : Window
             GameList.Focus();
         };
         Closed += (_, _) => { _pad.Dispose(); _watcher?.Dispose(); };
+    }
+
+    // ------------------------------------------------------------------ Cách điều khiển
+
+    private void Mode_Checked(object sender, RoutedEventArgs e)
+    {
+        var mode = (string)((FrameworkElement)sender).Tag;
+        if (App.Settings.ControlMode != mode)
+        {
+            App.Settings.ControlMode = mode;
+            App.Settings.Save(App.Paths.SettingsJson);
+        }
+        UpdateControlUi();
+    }
+
+    private void UpdateControlUi()
+    {
+        bool keyboard = App.Settings.ControlMode == ControlModes.Keyboard;
+        var k = KeyboardLayout.Resolve(App.Settings.KeyBindings);
+        string D(string id) => KeyboardLayout.DisplayName(k[id]);
+        ExitHint.Text = keyboard ? " bấm phím Esc" : " giữ START + SELECT  (hoặc Esc)";
+        ControlHint.Text = keyboard
+            ? $"Di chuyển {D("up")}{D("left")}{D("down")}{D("right")}  ·  Nút {D("x")}{D("y")}{D("b")}{D("a")}  ·  START {D("start")}"
+            : "Chọn: ↑↓   Chơi: A   Đổi mục: LB / RB";
+        ControlSetupButton.Content = keyboard ? "⌨  Thiết lập phím" : "🎮  Thiết lập tay cầm";
+
+        bool connected = _pad?.IsConnected == true;
+        PadDot.Fill = connected ? (Brush)FindResource("Accent") : new SolidColorBrush(Color.FromRgb(0x60, 0x7D, 0x8B));
+        PadDot.Effect = connected ? (System.Windows.Media.Effects.Effect)FindResource("Glow") : null;
+        PadStatus.Text = connected ? "Tay cầm đã kết nối" : "Chưa thấy tay cầm";
+    }
+
+    private void ControlSetup_Click(object sender, RoutedEventArgs e)
+    {
+        if (App.Settings.ControlMode == ControlModes.Keyboard)
+        {
+            new KeyBindingWindow { Owner = this }.ShowDialog();
+            UpdateControlUi();
+        }
+        else
+        {
+            SettingsWindow.OpenRetroArchMenu(this);
+        }
     }
 
     // ------------------------------------------------------------------ Tự quét khi thư mục game thay đổi
@@ -110,29 +162,52 @@ public partial class MainWindow : Window
 
     private void BuildTabs()
     {
-        var tabs = new List<(string Key, string Label)> { (TabAll, "Tất cả") };
+        int Count(Func<GameItem, bool> f) => _all.Count(f);
+        var tabs = new List<(string Key, string Icon, string Label, int Count)> { (TabAll, "◆", "Tất cả", _all.Count) };
         foreach (var p in App.Catalog.Platforms.Where(p => p.Enabled && _all.Any(g => g.Record.Platform == p.Name)))
-            tabs.Add((p.Name, p.DisplayName));
-        tabs.Add((TabFav, "★ Yêu thích"));
-        tabs.Add((TabRecent, "Chơi gần đây"));
+            tabs.Add((p.Name, "▸", p.DisplayName, Count(g => g.Record.Platform == p.Name)));
+        tabs.Add((TabFav, "★", "Yêu thích", Count(g => g.Record.IsFavorite)));
+        tabs.Add((TabRecent, "◷", "Chơi gần đây", Count(g => g.Record.LastPlayedAt != null)));
         if (_all.Any(g => g.IsUnknown))
-            tabs.Add((GameDatabase.UnknownPlatform, "Chưa nhận ra"));
+            tabs.Add((GameDatabase.UnknownPlatform, "?", "Chưa nhận ra", Count(g => g.IsUnknown)));
 
         if (!tabs.Any(t => t.Key == _tab)) _tab = TabAll;
         TabsPanel.Children.Clear();
         _tabButtons.Clear();
-        foreach (var (key, label) in tabs)
+        foreach (var (key, icon, label, count) in tabs)
         {
+            var content = new DockPanel { LastChildFill = true };
+            var badge = new Border
+            {
+                CornerRadius = new CornerRadius(9), Padding = new Thickness(9, 1, 9, 1), Background = (Brush)FindResource("Line"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock { Text = count.ToString(), FontSize = 15, FontFamily = (FontFamily)FindResource("TechFont"), Foreground = (Brush)FindResource("Accent") },
+            };
+            DockPanel.SetDock(badge, Dock.Right);
+            content.Children.Add(badge);
+            var text = new TextBlock { Text = $"{icon}   {label}", VerticalAlignment = VerticalAlignment.Center };
+            text.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding("Foreground") { RelativeSource = new System.Windows.Data.RelativeSource(System.Windows.Data.RelativeSourceMode.FindAncestor, typeof(RadioButton), 1) });
+            content.Children.Add(text);
+
             var rb = new RadioButton
             {
-                Content = label, Tag = key, GroupName = "tabs", IsChecked = key == _tab,
-                Style = (Style)FindResource("TabButton"), Focusable = false,
+                Content = content, Tag = key, GroupName = "tabs", IsChecked = key == _tab,
+                Style = (Style)FindResource("NavButton"), HorizontalContentAlignment = HorizontalAlignment.Stretch,
             };
             rb.Checked += (_, _) => { _tab = key; ApplyFilter(null); };
             TabsPanel.Children.Add(rb);
             _tabButtons.Add(rb);
         }
     }
+
+    private string TabTitle => _tab switch
+    {
+        TabAll => "Tất cả game",
+        TabFav => "Yêu thích",
+        TabRecent => "Chơi gần đây",
+        GameDatabase.UnknownPlatform => "Chưa nhận ra",
+        _ => App.Catalog.Get(_tab)?.DisplayName ?? _tab,
+    };
 
     private void ApplyFilter(long? selectId)
     {
@@ -170,7 +245,9 @@ public partial class MainWindow : Window
                 EmptyText.Text = search.Length > 0 ? $"Không tìm thấy game có tên \"{search}\"." : "Mục này hiện chưa có game.";
             }
         }
-        StatusText.Text = $"{_all.Count} game";
+        SectionTitle.Text = TabTitle;
+        SearchPlaceholder.Visibility = search.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
+        StatusText.Text = list.Count == _all.Count ? $"{_all.Count} GAME" : $"{list.Count} / {_all.Count} GAME";
     }
 
     private static string RemoveDiacritics(string s)
@@ -263,12 +340,32 @@ public partial class MainWindow : Window
         if (item.Record.DiscCount >= 2 && App.Settings.ShowDiscChangeGuide && !App.Settings.UseUserDuckStation)
             HelpWindow.ShowDiscGuide(this);
 
+        // Save state của giả lập: hỏi chơi tiếp hay chơi từ đầu (save trong game luôn được giữ)
+        bool useStates = App.Settings.AskSaveStateOnExit && !App.Settings.UseUserDuckStation;
+        var states = new SaveStateService(App.Paths.StatesDir);
+        if (useStates && states.FindAutoState(item.Record.LaunchFile) != null)
+        {
+            bool resume = Dialogs.Confirm(this, item.Name,
+                "Bạn đã lưu chỗ đang chơi ở lần trước.\nMuốn chơi tiếp từ chỗ đó, hay chơi từ đầu?\n\n(Save trong game của bạn vẫn được giữ nguyên dù chọn cách nào.)",
+                yes: "▶  Chơi tiếp", no: "Chơi từ đầu");
+            if (resume)
+            {
+                // Chèn trước "-L": chỉ lần chạy này mới nạp save state
+                plan.StartInfo!.ArgumentList.Insert(2, "--appendconfig");
+                plan.StartInfo!.ArgumentList.Insert(3, WriteResumeConfig());
+            }
+        }
+
         _gameRunning = true;
+        var startedUtc = DateTime.UtcNow;
         try
         {
             App.Db.MarkPlayed(item.Record.Id);
+            var previous = useStates ? states.BackupBeforePlay(item.Record.LaunchFile) : null;
             Hide();
             await launcher.RunAsync(plan.StartInfo!);
+            BringToFront();
+            if (useStates) AskKeepSaveState(item, states, startedUtc, previous);
         }
         catch (Exception ex)
         {
@@ -284,6 +381,36 @@ public partial class MainWindow : Window
             GameList.Focus();
             if (_rescanPending) { _rescanPending = false; RequestRescan(); }
         }
+    }
+
+    /// <summary>File cấu hình phụ chỉ bật nạp save state cho lần chạy này.</summary>
+    private static string WriteResumeConfig()
+    {
+        var path = Path.Combine(App.Paths.ConfigDir, "resume.cfg");
+        File.WriteAllText(path, "savestate_auto_load = \"true\"\n");
+        return path;
+    }
+
+    /// <summary>Sau khi thoát game: hỏi có lưu lại chỗ đang chơi không. Bắt buộc chọn (Esc/B không đóng được).</summary>
+    private void AskKeepSaveState(GameItem item, SaveStateService states, DateTime startedUtc, string? previous)
+    {
+        var state = states.NewStateSince(item.Record.LaunchFile, startedUtc);
+        if (state == null)
+        {
+            // Giả lập không chụp được (ví dụ bị tắt ngang): giữ nguyên bản cũ, bỏ bản sao lưu
+            if (previous != null) SaveStateService.Keep(previous);
+            return;
+        }
+        bool keep = Dialogs.Confirm(this, "Lưu lại chỗ đang chơi?",
+            $"Bạn vừa thoát \"{item.Name}\".\nCó muốn lưu lại đúng chỗ đang chơi để lần sau chơi tiếp không?\n\n(Save trong game của bạn vẫn được giữ nguyên dù chọn cách nào.)",
+            yes: "💾  Lưu lại", no: "Không lưu", cancellable: false);
+        try
+        {
+            if (keep) SaveStateService.Keep(state);
+            else SaveStateService.Discard(state);
+            Log.Info($"Save state {(keep ? "giữ" : "bỏ")}: {state}");
+        }
+        catch (Exception ex) { Log.Error("Lỗi xử lý save state", ex); }
     }
 
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);

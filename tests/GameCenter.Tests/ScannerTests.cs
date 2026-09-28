@@ -157,6 +157,16 @@ public class ScannerTests
     }
 
     [Fact]
+    public void GeneratedCue_KeepsOriginalFileName_SoSaveNameIsStable()
+    {
+        using var env = new TestEnv();
+        env.File("Yu-Gi-Oh! Forbidden Memories (USA).bin", TestEnv.Ps1Disc());
+        var g = Assert.Single(env.Scan());
+        Assert.Equal("Yu-Gi-Oh! Forbidden Memories", g.Title);                       // tên hiển thị đã làm sạch
+        Assert.Equal("Yu-Gi-Oh! Forbidden Memories (USA).cue", Path.GetFileName(g.LaunchFile)); // tên save = tên gốc
+    }
+
+    [Fact]
     public void Zip_ClassifiedByContent()
     {
         using var env = new TestEnv();
@@ -265,10 +275,15 @@ public class NameAndConfigTests
     public void RetroArchConfig_PreservesUserKeys()
     {
         using var env = new TestEnv();
-        File.WriteAllText(env.Paths.RetroArchCfg, "input_player1_a = \"x\"\nvideo_fullscreen = \"false\"\n");
+        File.WriteAllText(env.Paths.RetroArchCfg, "video_shader_enable = \"x\"\nvideo_fullscreen = \"false\"\n");
         RetroArchConfig.Write(env.Paths, new AppSettings { Fullscreen = true });
         var kv = RetroArchConfig.Parse(File.ReadAllLines(env.Paths.RetroArchCfg)).ToDictionary(x => x.Key, x => x.Value);
-        Assert.Equal("x", kv["input_player1_a"]);
+        Assert.Equal("x", kv["video_shader_enable"]);
+        // Phím mặc định WASD/IJKL, phím tắt trùng bị tắt, tự lưu khi thoát
+        Assert.Equal("w", kv["input_player1_up"]);
+        Assert.Equal("l", kv["input_player1_a"]);
+        Assert.Equal("nul", kv["input_hold_fast_forward"]);
+        Assert.Equal("true", kv["savestate_auto_save"]);
         Assert.Equal("true", kv["video_fullscreen"]);
         Assert.Equal("4", kv["input_quit_gamepad_combo"]);
         Assert.Equal(env.Paths.SavesDir, kv["savefile_directory"]);
@@ -290,5 +305,47 @@ public class NameAndConfigTests
         Assert.Equal(BiosState.UsingFallback, BiosChecker.Check(env.Catalog.Get("PS1")!, env.Paths.BiosDir));
         File.WriteAllBytes(Path.Combine(env.Paths.BiosDir, "SCPH5501.BIN"), new byte[1]);
         Assert.Equal(BiosState.Present, BiosChecker.Check(env.Catalog.Get("PS1")!, env.Paths.BiosDir));
+    }
+}
+
+public class SaveStateTests
+{
+    [Fact]
+    public void ContentName_MatchesRetroArch()
+    {
+        Assert.Equal("Yu-Gi-Oh! (USA)", SaveStateService.ContentName(@"C:\g\Yu-Gi-Oh! (USA).cue"));
+        Assert.Equal("rom", SaveStateService.ContentName(@"C:\g\pack.zip#rom.nes"));
+    }
+
+    [Fact]
+    public void Discard_RestoresPrevious_Keep_KeepsNew()
+    {
+        using var env = new TestEnv();
+        var core = Path.Combine(env.Paths.StatesDir, "Beetle PSX HW");
+        Directory.CreateDirectory(core);
+        var state = Path.Combine(core, "Game (USA).state.auto");
+        var launch = @"C:\x\Game (USA).cue";
+        var svc = new SaveStateService(env.Paths.StatesDir);
+
+        // Lần 1: chưa có bản cũ, chọn "Không lưu" → xóa hẳn
+        var start = DateTime.UtcNow;
+        Assert.Null(svc.BackupBeforePlay(launch));
+        File.WriteAllText(state, "lan1");
+        SaveStateService.Discard(svc.NewStateSince(launch, start)!);
+        Assert.False(File.Exists(state));
+
+        // Lần 2: chọn "Lưu lại" → giữ
+        start = DateTime.UtcNow;
+        File.WriteAllText(state, "lan2");
+        SaveStateService.Keep(svc.NewStateSince(launch, start)!);
+        Assert.Equal("lan2", File.ReadAllText(state));
+
+        // Lần 3: chơi tiếp rồi chọn "Không lưu" → khôi phục "lan2"
+        Assert.NotNull(svc.BackupBeforePlay(launch));
+        start = DateTime.UtcNow;
+        File.WriteAllText(state, "lan3");
+        SaveStateService.Discard(svc.NewStateSince(launch, start)!);
+        Assert.Equal("lan2", File.ReadAllText(state));
+        Assert.Empty(Directory.GetFiles(core, "*.gcbak"));
     }
 }

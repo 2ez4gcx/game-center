@@ -21,7 +21,7 @@ public partial class App : Application
 
         try
         {
-            Paths = new AppPaths(AppContext.BaseDirectory, AppPaths.ResolveDataDir());
+            Paths = new AppPaths(AppContext.BaseDirectory, AppPaths.ResolveDataDir(AppContext.BaseDirectory));
             Paths.EnsureDataFolders();
             Log.Init(Paths.LogFile);
             Log.Info($"Khởi động. AppDir={Paths.AppDir} DataDir={Paths.DataDir}");

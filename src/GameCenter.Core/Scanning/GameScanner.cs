@@ -186,7 +186,7 @@ public sealed class GameScanner
 
         // Sinh playlist .m3u cho game nhiều đĩa (sau khi đã có tên cuối cùng)
         foreach (var g in dirGames.Where(g => g.Platform == "PS1" && g.Discs.Count >= 2 && Ext(g.SourceFile) == ".cue"))
-            g.LaunchFile = WriteGenerated("PS1", g.Title, ".m3u", string.Join("\r\n", g.Discs) + "\r\n", g.SourceFile);
+            g.LaunchFile = WriteGenerated("PS1", NameCleaner.StripDisc(Path.GetFileNameWithoutExtension(g.SourceFile)), ".m3u", string.Join("\r\n", g.Discs) + "\r\n", g.SourceFile);
 
         result.AddRange(dirGames);
     }
@@ -298,7 +298,9 @@ public sealed class GameScanner
             case BinKind.Ps1Disc:
                 // PS1 .bin đơn → sinh .cue tạm trong Playlists/PS1 (mục 8.4)
                 var ps1 = NewGame(bin, "PS1", Path.GetFileNameWithoutExtension(bin), size);
-                ps1.LaunchFile = WriteGenerated("PS1", ps1.Title, ".cue", CueParser.BuildTempCue(ps1.SourceFile), ps1.SourceFile);
+                // Đặt theo tên file gốc (không phải tên đã làm sạch): RetroArch đặt tên save theo file chạy,
+                // giữ tên gốc thì save không đổi khi tên hiển thị thay đổi.
+                ps1.LaunchFile = WriteGenerated("PS1", Path.GetFileNameWithoutExtension(bin), ".cue", CueParser.BuildTempCue(ps1.SourceFile), ps1.SourceFile);
                 return ps1;
 
             default:

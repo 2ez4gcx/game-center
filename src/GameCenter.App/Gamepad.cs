@@ -41,6 +41,9 @@ public sealed class Gamepad : IDisposable
     private int _idleTicks;
 
     public event Action<PadButton>? Pressed;
+    /// <summary>Có tay cầm XInput đang cắm (cập nhật khi đọc tay cầm).</summary>
+    public bool IsConnected { get; private set; }
+    public event Action<bool>? ConnectionChanged;
     /// <summary>Chỉ đọc tay cầm khi hàm này trả về true (ví dụ cửa sổ đang được chọn, không có game đang chạy).</summary>
     public Func<bool> IsEnabled { get; set; } = () => true;
 
@@ -75,7 +78,6 @@ public sealed class Gamepad : IDisposable
     {
         // Không có tay cầm thì đọc thưa hơn cho nhẹ máy
         if (_idleTicks > 0) { _idleTicks--; return; }
-        if (!IsEnabled()) { _heldSince.Clear(); return; }
 
         var down = new HashSet<PadButton>();
         bool any = false;
@@ -95,7 +97,9 @@ public sealed class Gamepad : IDisposable
             if (g.sThumbLX < -dz) down.Add(PadButton.Left);
             if (g.sThumbLX > dz) down.Add(PadButton.Right);
         }
+        if (any != IsConnected) { IsConnected = any; ConnectionChanged?.Invoke(any); }
         if (!any) { _idleTicks = 25; _heldSince.Clear(); return; }
+        if (!IsEnabled()) { _heldSince.Clear(); return; }
 
         var now = DateTime.UtcNow;
         foreach (var b in _heldSince.Keys.Where(k => !down.Contains(k)).ToList()) _heldSince.Remove(b);

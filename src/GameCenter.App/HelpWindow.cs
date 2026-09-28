@@ -15,6 +15,7 @@ public sealed class HelpWindow : Window
         Height = Math.Min(900, SystemParameters.WorkArea.Height * 0.95);
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Background = (System.Windows.Media.Brush)Application.Current.Resources["Bg"];
+        Foreground = (System.Windows.Media.Brush)Application.Current.Resources["Fg"];
         Dialogs.AttachGamepad(this);
 
         var root = new StackPanel { Margin = new Thickness(32) };
@@ -47,6 +48,9 @@ public sealed class HelpWindow : Window
         root.Children.Add(Dialogs.Button("📄  Mở thư mục Logs", (_, _) => MainWindow.OpenFolder(App.Paths.LogsDir)));
 
         // --- Giấy phép (mục 17.2: ghi rõ thành phần nguồn mở)
+        Add(root, "Giới thiệu",
+            $"Game Center phiên bản {AppInfo.Version}\nTác giả: {AppInfo.Author}  ·  {AppInfo.Contact}");
+
         Add(root, "Giấy phép",
             "Game Center là phần mềm miễn phí: không bán, không quảng cáo, không có tính năng trả phí.\n" +
             "Game Center dùng các thành phần nguồn mở sau, mỗi thành phần giữ giấy phép riêng:\n" +

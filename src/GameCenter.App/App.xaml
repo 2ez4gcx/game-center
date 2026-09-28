@@ -3,51 +3,122 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-        <!-- Chữ lớn, tương phản cao (mục 12) -->
-        <SolidColorBrush x:Key="Bg" Color="#0F1419"/>
-        <SolidColorBrush x:Key="Panel" Color="#1C242D"/>
-        <SolidColorBrush x:Key="PanelHi" Color="#2A3642"/>
-        <SolidColorBrush x:Key="Fg" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="FgDim" Color="#C9D3DD"/>
-        <SolidColorBrush x:Key="Accent" Color="#FFD54A"/>
-        <SolidColorBrush x:Key="AccentFg" Color="#111111"/>
-        <SolidColorBrush x:Key="Play" Color="#2E9E4F"/>
-        <SolidColorBrush x:Key="Warn" Color="#FF8A65"/>
+        <!-- Hi-tech: nền xanh đen, viền neon cyan; vẫn chữ lớn, tương phản cao (mục 12) -->
+        <Color x:Key="CyanColor">#00E5FF</Color>
+        <Color x:Key="MagentaColor">#FF3D9A</Color>
 
-        <Style TargetType="TextBlock">
+        <LinearGradientBrush x:Key="Bg" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#060A14" Offset="0"/>
+            <GradientStop Color="#0B1328" Offset="0.55"/>
+            <GradientStop Color="#120A26" Offset="1"/>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="Sidebar" Color="#B3070C18"/>
+        <SolidColorBrush x:Key="Panel" Color="#CC101A30"/>
+        <SolidColorBrush x:Key="PanelHi" Color="#E6152541"/>
+        <SolidColorBrush x:Key="Line" Color="#3300E5FF"/>
+        <SolidColorBrush x:Key="LineStrong" Color="#8000E5FF"/>
+        <SolidColorBrush x:Key="Fg" Color="#F2F7FF"/>
+        <SolidColorBrush x:Key="FgDim" Color="#9FB3CC"/>
+        <SolidColorBrush x:Key="Accent" Color="{StaticResource CyanColor}"/>
+        <SolidColorBrush x:Key="Accent2" Color="{StaticResource MagentaColor}"/>
+        <SolidColorBrush x:Key="AccentFg" Color="#03121A"/>
+        <SolidColorBrush x:Key="Warn" Color="#FFB74D"/>
+        <LinearGradientBrush x:Key="Play" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#00E5FF" Offset="0"/>
+            <GradientStop Color="#2979FF" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Brand" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#00E5FF" Offset="0"/>
+            <GradientStop Color="#FF3D9A" Offset="1"/>
+        </LinearGradientBrush>
+
+        <FontFamily x:Key="TechFont">Bahnschrift, Segoe UI</FontFamily>
+
+        <DropShadowEffect x:Key="Glow" Color="{StaticResource CyanColor}" BlurRadius="22" ShadowDepth="0" Opacity="0.75"/>
+        <DropShadowEffect x:Key="SoftGlow" Color="{StaticResource CyanColor}" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+
+        <!-- Màu chữ đặt ở cấp Window (kế thừa), không dùng style TextBlock chung để nút tự đổi được màu chữ -->
+        <Style TargetType="Window">
             <Setter Property="Foreground" Value="{StaticResource Fg}"/>
-            <Setter Property="FontSize" Value="20"/>
         </Style>
 
+        <!-- Nút chung: kính mờ, viền cyan -->
         <Style x:Key="BigButton" TargetType="Button">
-            <Setter Property="MinHeight" Value="50"/>
-            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="MinHeight" Value="52"/>
+            <Setter Property="MinWidth" Value="52"/>
             <Setter Property="Padding" Value="20,6"/>
             <Setter Property="Margin" Value="6"/>
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource Fg}"/>
-            <Setter Property="Background" Value="{StaticResource PanelHi}"/>
-            <Setter Property="BorderBrush" Value="#556677"/>
-            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Background" Value="#661A2A48"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="b" Property="Effect" Value="{StaticResource SoftGlow}"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
-                                <Setter TargetName="b" Property="BorderThickness" Value="4"/>
+                                <Setter TargetName="b" Property="BorderThickness" Value="3"/>
+                                <Setter TargetName="b" Property="Effect" Value="{StaticResource Glow}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                                <Setter TargetName="b" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Nút Chơi: gradient cyan → xanh, chữ tối -->
+        <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource BigButton}">
+            <Setter Property="Background" Value="{StaticResource Play}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentFg}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="MinWidth" Value="150"/>
+        </Style>
+
+        <!-- Mục điều hướng trong sidebar -->
+        <Style x:Key="NavButton" TargetType="RadioButton">
+            <Setter Property="MinHeight" Value="46"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource FgDim}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="b" Background="Transparent" CornerRadius="12" BorderThickness="1.5" BorderBrush="Transparent" Padding="16,6"/>
+                            <Border x:Name="bar" Width="4" CornerRadius="2" HorizontalAlignment="Left" Margin="0,10" Background="{StaticResource Accent}" Visibility="Hidden" Effect="{StaticResource Glow}"/>
+                            <ContentPresenter Margin="18,0,14,0" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#3300E5FF"/>
+                                <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#2600E5FF"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource LineStrong}"/>
+                                <Setter TargetName="bar" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="{StaticResource Fg}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -55,32 +126,28 @@
             </Setter>
         </Style>
 
-        <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource BigButton}">
-            <Setter Property="Background" Value="{StaticResource Play}"/>
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="MinWidth" Value="140"/>
-        </Style>
-
-        <Style x:Key="TabButton" TargetType="RadioButton">
-            <Setter Property="MinHeight" Value="50"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="FontSize" Value="20"/>
+        <!-- Nút chọn cách điều khiển (Tay cầm / Bàn phím) -->
+        <Style x:Key="SegmentButton" TargetType="RadioButton">
+            <Setter Property="MinHeight" Value="58"/>
+            <Setter Property="FontSize" Value="17"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="Foreground" Value="{StaticResource FgDim}"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="b" Background="{StaticResource Panel}" BorderBrush="#556677" BorderThickness="2" CornerRadius="25" Padding="22,6">
-                            <ContentPresenter x:Name="c" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="b" CornerRadius="10" Margin="3" Background="Transparent" BorderThickness="1.5" BorderBrush="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="b" Property="Background" Value="{StaticResource Accent}"/>
-                                <Setter Property="Foreground" Value="{StaticResource AccentFg}"/>
-                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{StaticResource Play}"/>
+                                <Setter TargetName="b" Property="Effect" Value="{StaticResource SoftGlow}"/>
+                                <Setter Property="Foreground" Value="{StaticResource AccentFg}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -98,19 +165,41 @@
             </Setter>
         </Style>
 
+        <!-- Ô nhập: tối, viền cyan khi chọn -->
         <Style TargetType="TextBox">
             <Setter Property="FontSize" Value="22"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="MinHeight" Value="50"/>
+            <Setter Property="MinHeight" Value="52"/>
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource Accent}"/>
+            <Setter Property="Background" Value="#80101A30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#111111"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="12" Padding="14,0">
+                            <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="b" Property="Effect" Value="{StaticResource SoftGlow}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="ComboBox">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="MinHeight" Value="46"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="Opacity" Value="0.6"/>
         </Style>
     </Application.Resources>
 </Application>

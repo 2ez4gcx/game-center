@@ -1,5 +1,6 @@
-; Bộ cài Game Center — Inno Setup 6
-; Cách A (mục 5.1): cài theo người dùng, không cần quyền admin.
+﻿; Bộ cài Game Center — Inno Setup 6
+; Cài theo người dùng, không cần quyền admin. Mặc định C:\GameCenter (dễ tìm), cho chọn ổ khác (ví dụ D:\GameCenter).
+; Games, Saves, BIOS... nằm ngay trong thư mục cài đặt; gỡ cài đặt KHÔNG xóa các thư mục này.
 ; Build: ISCC installer\GameCenter.iss   (sau khi chạy build.ps1)
 
 #define AppName "Game Center"
@@ -11,12 +12,13 @@ AppId={{6C2B7A1E-4F3D-4B8E-9A61-5E2C1D7F0A11}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Game Center
-DefaultDirName={localappdata}\Programs\GameCenter
+DefaultDirName={sd}\GameCenter
 DefaultGroupName={#AppName}
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=
 DisableProgramGroupPage=yes
-DisableDirPage=yes
+DisableDirPage=no
+UsePreviousAppDir=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\publish
@@ -39,22 +41,24 @@ Name: "desktopicon"; Description: "Tạo biểu tượng ngoài màn hình Deskt
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*duckstation*"
 
 [Dirs]
-; Thư mục dữ liệu mặc định %USERPROFILE%\GameCenter — KHÔNG bị xóa khi gỡ cài đặt.
-Name: "{%USERPROFILE}\GameCenter\Games\NES";       Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Games\SNES";      Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Games\GB";        Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Games\GBA";       Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Games\MegaDrive"; Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Games\PS1";       Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\BIOS";            Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Saves";           Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\States";          Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Covers";          Flags: uninsneveruninstall
-Name: "{%USERPROFILE}\GameCenter\Playlists";       Flags: uninsneveruninstall
+; Thư mục dữ liệu nằm trong thư mục cài đặt — KHÔNG bị xóa khi gỡ cài đặt.
+Name: "{app}\Games\NES";       Flags: uninsneveruninstall
+Name: "{app}\Games\SNES";      Flags: uninsneveruninstall
+Name: "{app}\Games\GB";        Flags: uninsneveruninstall
+Name: "{app}\Games\GBA";       Flags: uninsneveruninstall
+Name: "{app}\Games\MegaDrive"; Flags: uninsneveruninstall
+Name: "{app}\Games\PS1";       Flags: uninsneveruninstall
+Name: "{app}\BIOS";            Flags: uninsneveruninstall
+Name: "{app}\Saves";           Flags: uninsneveruninstall
+Name: "{app}\States";          Flags: uninsneveruninstall
+Name: "{app}\Covers";          Flags: uninsneveruninstall
+Name: "{app}\Playlists";       Flags: uninsneveruninstall
+Name: "{app}\Config";          Flags: uninsneveruninstall
+Name: "{app}\Database";        Flags: uninsneveruninstall
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\GameCenter.exe"
-Name: "{group}\Thư mục game"; Filename: "{%USERPROFILE}\GameCenter\Games"
+Name: "{group}\Thư mục game"; Filename: "{app}\Games"
 Name: "{group}\Gỡ cài đặt {#AppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\GameCenter.exe"; Tasks: desktopicon
 
