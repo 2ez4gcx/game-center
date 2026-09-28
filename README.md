@@ -102,3 +102,7 @@ Game Center miễn phí, không quảng cáo, không tính năng trả phí. Ret
 ---
 
 Phát triển bởi **Khuong Doan**: <https://khuongdoan.com/>
+
+<sub>Game Center miễn phí và sẽ luôn như vậy. Nếu nó giúp bạn chơi lại trò chơi tuổi thơ và bạn muốn mời tác giả một ly cà phê, quét mã MoMo bên dưới. Không bắt buộc, không kèm quyền lợi gì thêm. Khoản ủng hộ dành cho phần launcher Game Center, không phải cho các trình giả lập đi kèm.</sub>
+
+<a href="https://github.com/2ez4gcx/Project-hub/blob/main/docs/anh/ung-ho-momo.png"><img src="https://raw.githubusercontent.com/2ez4gcx/Project-hub/main/docs/anh/ung-ho-momo.png" alt="Ủng hộ tác giả qua MoMo" width="170"></a>

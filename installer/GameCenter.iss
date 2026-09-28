@@ -19,7 +19,8 @@
 AppId={#AppIdValue}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Game Center
+AppPublisher=Khuong Doan
+AppPublisherURL=https://khuongdoan.com/
 DefaultDirName={sd}\GameCenter
 DefaultGroupName={#AppName}
 PrivilegesRequired=lowest
