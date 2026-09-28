@@ -135,7 +135,7 @@ public sealed class GameDatabase
             if (match == null)
             {
                 // Có thể là game bị di chuyển: chỉ khớp với bản ghi không còn tìm thấy.
-                var candidates = existing.Where(e => !seen.Contains(e.Id) && !File.Exists(e.SourceFile));
+                var candidates = existing.Where(e => !seen.Contains(e.Id) && !File.Exists(GameScanner.PhysicalPath(e.SourceFile)));
                 match = s.FileHash != null
                     ? candidates.FirstOrDefault(e => e.FileHash == s.FileHash)
                     : candidates.FirstOrDefault(e => e.Title == s.Title && e.FileSize == s.FileSize && e.FileSize > 0);

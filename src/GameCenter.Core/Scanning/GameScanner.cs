@@ -162,7 +162,7 @@ public sealed class GameScanner
 
                 // 2. .zip: xem nội dung bên trong
                 case ".zip":
-                    dirGames.Add(ClassifyZip(f, hint));
+                    dirGames.AddRange(ClassifyZip(f, hint));
                     break;
 
                 default:
@@ -221,94 +221,180 @@ public sealed class GameScanner
         }
     }
 
-    public static bool HasMegaDriveHeader(Stream s)
+    // ------------------------------------------------------------------ Nhận diện theo nội dung
+
+    private const int CdSector = 2352;
+    /// <summary>Đủ để đọc tới hết sector 16 (Primary Volume Descriptor) của ảnh đĩa CD.</summary>
+    private const int HeadSize = 17 * CdSector + 64;
+
+    public static byte[] ReadHead(Stream s, int size = HeadSize)
     {
-        var buf = new byte[4];
-        if (s.CanSeek)
+        var buf = new byte[size];
+        int n = s.ReadAtLeast(buf, size, throwOnEndOfStream: false);
+        Array.Resize(ref buf, n);
+        return buf;
+    }
+
+    private static bool Ascii(byte[] b, int offset, string text) =>
+        b.Length >= offset + text.Length && Encoding.ASCII.GetString(b, offset, text.Length) == text;
+
+    public static bool HasMegaDriveHeader(Stream s) => HasMegaDriveHeader(ReadHead(s, 0x110));
+
+    /// <summary>ROM Mega Drive có "SEGA" ở 0x100 (một số ROM lệch 1 byte: " SEGA").</summary>
+    public static bool HasMegaDriveHeader(byte[] head) => Ascii(head, 0x100, "SEGA") || Ascii(head, 0x101, "SEGA");
+
+    /// <summary>Mẫu đồng bộ ở đầu mỗi sector CD thô: 00 FF×10 00.</summary>
+    private static bool HasCdSync(byte[] b)
+    {
+        if (b.Length < 16 || b[0] != 0 || b[11] != 0) return false;
+        for (int i = 1; i <= 10; i++) if (b[i] != 0xFF) return false;
+        return true;
+    }
+
+    public enum BinKind { Unknown, MegaDrive, Ps1Disc, OtherCd }
+
+    /// <summary>
+    /// Nhận diện file .bin theo nội dung:
+    /// - Đĩa PS1: sector thô 2352 byte, sector 16 là "\x01CD001" với system id "PLAYSTATION".
+    /// - Đĩa CD khác (Sega CD, Saturn...): có sync nhưng không phải PS1 → chưa hỗ trợ.
+    /// - ROM Mega Drive: "SEGA" ở 0x100.
+    /// </summary>
+    public static BinKind DetectBin(byte[] head)
+    {
+        if (HasCdSync(head))
         {
-            if (s.Length < 0x104) return false;
-            s.Seek(0x100, SeekOrigin.Begin);
+            // Mode 2 (PS1): dữ liệu sau 16 byte header + 8 byte subheader; Mode 1: sau 16 byte
+            foreach (var dataOffset in new[] { 24, 16 })
+            {
+                int pvd = 16 * CdSector + dataOffset;
+                if (head.Length > pvd + 6 && head[pvd] == 1 && Ascii(head, pvd + 1, "CD001"))
+                    return Ascii(head, pvd + 8, "PLAYSTATION") ? BinKind.Ps1Disc : BinKind.OtherCd;
+            }
+            return BinKind.OtherCd;
         }
-        else
-        {
-            var skip = new byte[0x100];
-            if (s.ReadAtLeast(skip, 0x100, throwOnEndOfStream: false) < 0x100) return false;
-        }
-        return s.ReadAtLeast(buf, 4, throwOnEndOfStream: false) == 4 && Encoding.ASCII.GetString(buf) == "SEGA";
+        if (HasMegaDriveHeader(head)) return BinKind.MegaDrive;
+        return BinKind.Unknown;
     }
 
     private ScannedGame ClassifyLooseBin(string bin, PlatformDefinition? hint)
     {
         var size = new FileInfo(bin).Length;
-        bool isMd;
-        if (hint?.Name == "MegaDrive") isMd = true;
-        else if (hint?.Name == "PS1") isMd = false;
-        else { using var fs = File.OpenRead(bin); isMd = HasMegaDriveHeader(fs); }
-
-        if (isMd)
+        BinKind kind;
+        using (var fs = File.OpenRead(bin)) kind = DetectBin(ReadHead(fs));
+        // Không nhận ra từ nội dung: tin theo thư mục hệ máy người dùng đã đặt
+        if (kind == BinKind.Unknown)
         {
-            var g = NewGame(bin, "MegaDrive", Path.GetFileNameWithoutExtension(bin), size);
-            g.FileHash = HashFile(bin);
-            return g;
+            if (hint?.Name == "MegaDrive") kind = BinKind.MegaDrive;
+            else if (hint?.Name == "PS1") kind = BinKind.Ps1Disc;
         }
 
-        // PS1 .bin đơn → sinh .cue tạm trong Playlists/PS1 (mục 8.4)
-        var ps1 = NewGame(bin, "PS1", Path.GetFileNameWithoutExtension(bin), size);
-        ps1.LaunchFile = WriteGenerated("PS1", ps1.Title, ".cue", CueParser.BuildTempCue(ps1.SourceFile), ps1.SourceFile);
-        if (hint?.Name != "PS1") ps1.Message = "File .bin không có .cue, đoán là PS1.";
-        return ps1;
+        switch (kind)
+        {
+            case BinKind.MegaDrive:
+                var g = NewGame(bin, "MegaDrive", Path.GetFileNameWithoutExtension(bin), size);
+                g.FileHash = HashFile(bin);
+                return g;
+
+            case BinKind.Ps1Disc:
+                // PS1 .bin đơn → sinh .cue tạm trong Playlists/PS1 (mục 8.4)
+                var ps1 = NewGame(bin, "PS1", Path.GetFileNameWithoutExtension(bin), size);
+                ps1.LaunchFile = WriteGenerated("PS1", ps1.Title, ".cue", CueParser.BuildTempCue(ps1.SourceFile), ps1.SourceFile);
+                return ps1;
+
+            default:
+                var u = NewGame(bin, null, Path.GetFileNameWithoutExtension(bin), size);
+                u.Status = ScanStatus.Unknown;
+                u.Message = kind == BinKind.OtherCd
+                    ? "Đây là đĩa CD của máy khác (không phải PS1), Game Center chưa hỗ trợ."
+                    : "Không nhận ra file .bin này, hãy chọn hệ máy.";
+                return u;
+        }
     }
 
-    private ScannedGame ClassifyZip(string zip, PlatformDefinition? hint)
+    /// <summary>Nhận diện một ROM bên trong file .zip.</summary>
+    private string? PlatformOfEntry(ZipArchiveEntry entry, PlatformDefinition? hint)
     {
-        var g = NewGame(zip, null, Path.GetFileNameWithoutExtension(zip), new FileInfo(zip).Length);
+        var ext = Path.GetExtension(entry.Name).ToLowerInvariant();
+        if (ext == ".bin")
+        {
+            using var s = entry.Open();
+            // Đĩa PS1 trong zip không chạy trực tiếp được → không nhận
+            if (HasMegaDriveHeader(ReadHead(s, 0x110))) return "MegaDrive";
+            return hint?.Name == "MegaDrive" ? hint.Name : null;
+        }
+        if (hint != null && hint.Extensions.Contains(ext) && hint.Extensions.Contains(".zip")) return hint.Name;
+        var p = _catalog.UniqueForExtension(ext);
+        return p != null && p.Extensions.Contains(".zip") ? p.Name : null;
+    }
+
+    /// <summary>
+    /// .zip một ROM → một game. .zip nhiều ROM → mỗi ROM một game,
+    /// chạy bằng cú pháp của RetroArch "file.zip#rom.ext".
+    /// </summary>
+    private List<ScannedGame> ClassifyZip(string zip, PlatformDefinition? hint)
+    {
+        var single = NewGame(zip, null, Path.GetFileNameWithoutExtension(zip), new FileInfo(zip).Length);
+        bool hintTakesZip = hint != null && hint.Extensions.Contains(".zip");
         try
         {
             using var archive = ZipFile.OpenRead(zip);
             var roms = archive.Entries
-                .Where(e => e.Length > 0 && _catalog.IsKnownExtension(Path.GetExtension(e.Name).ToLowerInvariant())
-                            && Path.GetExtension(e.Name).ToLowerInvariant() != ".zip")
+                .Where(e => e.Length > 0 && !string.IsNullOrEmpty(e.Name)
+                            && _catalog.IsKnownExtension(Path.GetExtension(e.Name).ToLowerInvariant())
+                            && Path.GetExtension(e.Name).ToLowerInvariant() is not (".zip" or ".cue" or ".m3u"))
                 .ToList();
 
-            if (hint != null && hint.Extensions.Contains(".zip"))
+            if (roms.Count <= 1)
             {
-                g.Platform = hint.Name;
-            }
-            else if (roms.Count == 1)
-            {
-                var entry = roms[0];
-                var ext = Path.GetExtension(entry.Name).ToLowerInvariant();
-                if (ext == ".bin")
+                single.Platform = roms.Count == 1 ? PlatformOfEntry(roms[0], hint) : null;
+                if (single.Platform == null && hintTakesZip) single.Platform = hint!.Name;
+                if (roms.Count == 1) single.FileHash = roms[0].Crc32.ToString("X8");
+                if (single.Platform == null)
                 {
-                    using var s = entry.Open();
-                    g.Platform = HasMegaDriveHeader(s) ? "MegaDrive" : null;
+                    single.Status = ScanStatus.Unknown;
+                    single.Message = roms.Count == 0
+                        ? "File .zip không chứa ROM nào nhận ra được."
+                        : "Không xác định được hệ máy của ROM trong file .zip.";
                 }
-                else
-                {
-                    var p = _catalog.UniqueForExtension(ext);
-                    if (p != null && p.Extensions.Contains(".zip")) g.Platform = p.Name;
-                }
+                return new() { single };
             }
 
-            if (roms.Count == 1) g.FileHash = roms[0].Crc32.ToString("X8");
-
-            if (g.Platform == null)
+            var games = new List<ScannedGame>();
+            foreach (var e in roms)
             {
-                g.Status = ScanStatus.Unknown;
-                g.Message = roms.Count switch
+                var key = $"{Path.GetFullPath(zip)}#{e.FullName}";
+                var g = new ScannedGame
                 {
-                    0 => "File .zip không chứa ROM nào nhận ra được.",
-                    1 => "Không xác định được hệ máy của ROM trong file .zip.",
-                    _ => $"File .zip chứa {roms.Count} ROM, hãy chọn hệ máy.",
+                    Title = NameCleaner.Clean(Path.GetFileNameWithoutExtension(e.Name)),
+                    Platform = PlatformOfEntry(e, hint),
+                    LaunchFile = key,
+                    SourceFile = key,
+                    FolderPath = Path.GetDirectoryName(Path.GetFullPath(zip))!,
+                    FileSize = e.Length,
+                    FileHash = e.Crc32.ToString("X8"),
                 };
+                if (g.Platform == null)
+                {
+                    g.Status = ScanStatus.Unknown;
+                    g.Message = $"Không nhận ra ROM \"{e.Name}\" trong {Path.GetFileName(zip)}.";
+                }
+                games.Add(g);
             }
+            return games;
         }
         catch (InvalidDataException)
         {
-            g.Status = ScanStatus.Unknown;
-            g.Message = "File .zip bị hỏng.";
+            single.Status = ScanStatus.Unknown;
+            single.Message = "File .zip bị hỏng.";
+            return new() { single };
         }
-        return g;
+    }
+
+    /// <summary>File thật trên ổ đĩa (bỏ phần "#rom" của đường dẫn bên trong zip).</summary>
+    public static string PhysicalPath(string path)
+    {
+        int i = path.IndexOf(".zip#", StringComparison.OrdinalIgnoreCase);
+        return i < 0 ? path : path[..(i + 4)];
     }
 
     private static string? HashFile(string path)

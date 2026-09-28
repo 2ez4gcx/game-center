@@ -38,6 +38,24 @@ public sealed class TestEnv : IDisposable
 
     public string Text(string rel, string text) => File(rel, new UTF8Encoding(false).GetBytes(text));
 
+    /// <summary>Ảnh đĩa CD thô (2352 byte/sector, Mode 2) với PVD "CD001" ở sector 16.</summary>
+    public static byte[] Ps1Disc(string systemId = "PLAYSTATION")
+    {
+        const int sector = 2352;
+        var b = new byte[18 * sector];
+        for (int s = 0; s < 18; s++)
+        {
+            int o = s * sector;
+            for (int i = 1; i <= 10; i++) b[o + i] = 0xFF;
+            b[o + 15] = 2; // mode 2
+        }
+        int pvd = 16 * sector + 24;
+        b[pvd] = 1;
+        Encoding.ASCII.GetBytes("CD001").CopyTo(b, pvd + 1);
+        Encoding.ASCII.GetBytes(systemId).CopyTo(b, pvd + 8);
+        return b;
+    }
+
     public static byte[] MegaDriveRom()
     {
         var b = new byte[0x400];
@@ -123,10 +141,14 @@ public class ScannerTests
     {
         using var env = new TestEnv();
         env.File("misc/Sonic.bin", TestEnv.MegaDriveRom());
-        env.File("misc/Tiếng Việt game.bin", new byte[0x1000]);
+        env.File("misc/Tiếng Việt game.bin", TestEnv.Ps1Disc());
+        env.File("misc/Sega CD game.bin", TestEnv.Ps1Disc(systemId: "SEGA SEGACD"));
+        env.File("misc/rác.bin", new byte[0x1000]);
 
         var games = env.Scan();
         Assert.Equal("MegaDrive", games.Single(g => g.Title == "Sonic").Platform);
+        Assert.Equal(ScanStatus.Unknown, games.Single(g => g.Title == "Sega CD game").Status);
+        Assert.Equal(ScanStatus.Unknown, games.Single(g => g.Title == "rác").Status);
         var ps1 = games.Single(g => g.Platform == "PS1");
         Assert.EndsWith(".cue", ps1.LaunchFile);
         Assert.StartsWith(env.Paths.PlaylistsDir, ps1.LaunchFile);
@@ -147,7 +169,10 @@ public class ScannerTests
         var g = env.Scan().ToDictionary(x => Path.GetFileName(x.SourceFile));
         Assert.Equal("NES", g["one.zip"].Platform);
         Assert.Equal("MegaDrive", g["md.zip"].Platform);
-        Assert.Equal(ScanStatus.Unknown, g["many.zip"].Status);
+        // zip nhiều ROM → tách mỗi ROM một game, chạy bằng "file.zip#rom"
+        Assert.Equal("NES", g["many.zip#a.nes"].Platform);
+        Assert.Equal("GBA", g["many.zip#b.gba"].Platform);
+        Assert.EndsWith("many.zip#b.gba", g["many.zip#b.gba"].LaunchFile);
         Assert.Equal(ScanStatus.Unknown, g["none.zip"].Status);
         Assert.Equal("SNES", g["in-folder.zip"].Platform);
     }
@@ -204,7 +229,7 @@ public class ScannerTests
         using var env = new TestEnv();
         var db = new GameDatabase(env.Paths.DatabaseFile);
         db.Initialize(env.Catalog);
-        MakeZip(env.File("x/many.zip"), ("a.nes", new byte[16]), ("b.gba", new byte[16]));
+        env.File("x/lạ.bin", new byte[0x1000]);
         db.ApplyScan(env.Scan());
         var g = db.GetGames().Single();
         Assert.Equal(GameDatabase.UnknownPlatform, g.Platform);

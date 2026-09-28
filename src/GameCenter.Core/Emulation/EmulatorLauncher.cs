@@ -39,7 +39,7 @@ public sealed class EmulatorLauncher
         if (game.ScanStatus == ScanStatus.BrokenCue)
             return new(LaunchProblem.BrokenCue,
                 $"Game này bị thiếu file nên không chạy được.\n\n{game.ScanMessage}\n\nHãy kiểm tra lại thư mục game.");
-        if (!File.Exists(game.LaunchFile))
+        if (!File.Exists(GameScanner.PhysicalPath(game.LaunchFile)))
             return new(LaunchProblem.GameFileMissing, "Không tìm thấy file game. Có thể game đã bị xóa hoặc di chuyển. Hãy bấm \"Quét game mới\".");
 
         var platform = _catalog.Get(game.Platform);
