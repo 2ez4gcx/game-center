@@ -48,7 +48,7 @@ Game Center **không thay thế** RetroArch mà là lớp giao diện đơn gi�
 | **PS1** | Tự xử lý `.cue`, tự viết `.m3u` cho game nhiều đĩa | Tự ghép đĩa, tự tạo `.cue` cho `.bin` lẻ, tự tạo `.m3u` |
 | **Giao diện** | Menu nhiều tầng, chữ nhỏ, hàng trăm tùy chọn | Một màn hình, chữ lớn, nút "Chơi" |
 | **Điều khiển** | Phải tự gán phím, phím tắt mặc định dễ bấm nhầm (tua nhanh, tạm dừng…) | Phím WASD/IJKL có sẵn, đã tắt các phím tắt dễ nhầm, gán lại bằng cửa sổ đơn giản |
-| **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình (START + SELECT hoặc Esc) |
+| **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình; phải bấm 2 lần mới thoát để tránh lỡ tay |
 | **Save state** | Lưu/nạp thủ công, hoặc tự động ngầm | Hỏi khi thoát và khi mở lại, bằng câu dễ hiểu |
 | **Tiện ích** | Có nhưng nằm sâu trong menu | Yêu thích, chơi gần đây, tìm kiếm không dấu, sao lưu save |
 
@@ -79,7 +79,7 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 |---|---|
 | ![Chế độ bàn phím](docs/anh/che-do-ban-phim.png) | ![Thiết lập phím](docs/anh/thiet-lap-phim.png) |
 
-**Thoát game:** giữ **START + SELECT** trên tay cầm, hoặc bấm **Esc**. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh.
+**Thoát game:** bấm **START + SELECT** trên tay cầm, hoặc **Esc** trên bàn phím, **2 lần liên tiếp**. Lần đầu chỉ hiện "Nhấn lại để thoát...", để lỡ chạm một lần không mất game đang chơi. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh. Menu và thông báo của giả lập hiển thị bằng tiếng Việt.
 
 **Save game:**
 - Save trong game (memory card, save trong băng) luôn được giữ, tự ghi xuống ổ mỗi 10 giây.

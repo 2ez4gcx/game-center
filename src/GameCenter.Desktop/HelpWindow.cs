@@ -24,8 +24,10 @@ public sealed class HelpWindow : Window
         root.Children.Add(Dialogs.Heading("Trợ giúp"));
 
         Add(root, "Thoát game",
-            "• Tay cầm: giữ cùng lúc nút START và SELECT (trên tay cầm Xbox là nút ☰ và nút ⧉).\n" +
-            "• Bàn phím: bấm phím Esc.\n" +
+            "Để tránh lỡ tay, phải bấm 2 lần mới thoát:\n" +
+            "• Tay cầm: bấm cùng lúc START và SELECT (trên tay cầm Xbox là nút ☰ và nút ⧉), màn hình hiện \"Nhấn lại để thoát...\", bấm thêm một lần nữa.\n" +
+            "• Bàn phím: bấm Esc 2 lần liên tiếp.\n" +
+            "Lỡ bấm một lần thì cứ chơi tiếp, vài giây sau lời nhắc tự tắt.\n" +
             "Game Center sẽ tự hiện lại sau khi thoát game. Game tự lưu khi bạn lưu trong game như máy thật.");
 
         Add(root, "Chơi game",
@@ -95,8 +97,8 @@ public sealed class HelpWindow : Window
     public const string DiscGuideText =
         "Khi game báo \"hãy cho đĩa 2 vào\":\n" +
         "1. Mở menu: giữ cùng lúc 2 cần analog (bấm lún L3 + R3), hoặc bấm phím F1.\n" +
-        "2. Chọn \"Điều khiển đĩa\" (Disc Control).\n" +
-        "3. Chọn \"Mở khay đĩa\" → chọn đĩa tiếp theo → \"Đóng khay đĩa\".\n" +
+        "2. Chọn \"Điều khiển đĩa\".\n" +
+        "3. Chọn \"Đẩy đĩa ra\" → ở \"Chỉ số đĩa\" chọn đĩa tiếp theo → chọn \"Thêm đĩa\".\n" +
         "4. Bấm lại L3 + R3 (hoặc F1) để quay về game.\n" +
         "Tiến trình chơi được giữ nguyên.";
 

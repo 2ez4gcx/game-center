@@ -284,6 +284,9 @@ public class NameAndConfigTests
         Assert.Equal("l", kv["input_player1_a"]);
         Assert.Equal("nul", kv["input_hold_fast_forward"]);
         Assert.Equal("true", kv["savestate_auto_save"]);
+        // Phải bấm thoát 2 lần; RetroArch hiển thị tiếng Việt
+        Assert.Equal("true", kv["quit_press_twice"]);
+        Assert.Equal("15", kv["user_language"]);
         Assert.Equal("true", kv["video_fullscreen"]);
         Assert.Equal("4", kv["input_quit_gamepad_combo"]);
         Assert.Equal(env.Paths.SavesDir, kv["savefile_directory"]);

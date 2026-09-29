@@ -153,7 +153,7 @@
                         <TextBlock x:Name="ControlHint" DockPanel.Dock="Right" FontSize="17" Foreground="{StaticResource FgDim}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="⏏  THOÁT GAME:" FontSize="22" FontWeight="Bold" Foreground="{StaticResource Accent2}"/>
-                            <TextBlock x:Name="ExitHint" Text=" giữ START + SELECT" FontSize="22" FontWeight="Bold" Margin="8,0,0,0"/>
+                            <TextBlock x:Name="ExitHint" Text="bấm START + SELECT 2 lần" FontSize="22" FontWeight="Bold" Margin="8,0,0,0"/>
                         </StackPanel>
                     </DockPanel>
                 </Border>

@@ -110,7 +110,7 @@ public sealed class SettingsWindow : Window
             return;
         }
         await Dialogs.Info(owner, "Cấu hình tay cầm",
-            "Cửa sổ giả lập sẽ mở ra.\n\nVào: Cài đặt → Đầu vào → Điều khiển cổng 1 → Gán tất cả nút.\nBấm lần lượt từng nút trên tay cầm theo hướng dẫn.\n\nXong thì đóng cửa sổ giả lập (Esc).");
+            "Cửa sổ giả lập sẽ mở ra.\n\nVào: Thiết lập → Điều khiển → Cổng 1 → \"Thiết lập Tất cả Điều khiển\".\nBấm lần lượt từng nút trên tay cầm theo hướng dẫn.\n\nXong thì bấm Esc 2 lần để đóng cửa sổ giả lập.");
         try
         {
             RetroArchConfig.Write(App.Paths, App.Settings);

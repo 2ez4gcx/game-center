@@ -78,7 +78,7 @@ public partial class MainWindow : Window
         bool keyboard = App.Settings.ControlMode == ControlModes.Keyboard;
         var k = KeyboardLayout.Resolve(App.Settings.KeyBindings);
         string D(string id) => KeyboardLayout.DisplayName(k[id]);
-        ExitHint.Text = keyboard ? "bấm phím Esc" : "giữ START + SELECT  (hoặc Esc)";
+        ExitHint.Text = keyboard ? "bấm Esc 2 lần" : "bấm START + SELECT 2 lần  (hoặc Esc 2 lần)";
         ControlHint.Text = keyboard
             ? $"Di chuyển {D("up")}{D("left")}{D("down")}{D("right")}  ·  Nút {D("x")}{D("y")}{D("b")}{D("a")}  ·  START {D("start")}"
             : "Chọn: ↑↓   Chơi: A   Đổi mục: LB / RB";

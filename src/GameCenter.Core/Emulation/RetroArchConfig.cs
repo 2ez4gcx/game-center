@@ -43,11 +43,14 @@ public static class RetroArchConfig
             ["video_fullscreen"] = settings.Fullscreen ? "true" : "false",
             ["video_driver"] = useVulkan ? "vulkan" : OsPlatform.FallbackVideoDriver(paths.Os),
 
-            // Thoát game: giữ START + SELECT trên tay cầm, hoặc Esc trên bàn phím
+            // Thoát game: START + SELECT trên tay cầm, hoặc Esc trên bàn phím — phải bấm 2 lần
+            // (lần đầu hiện "Nhấn lại để thoát...") để lỡ chạm một lần không mất game đang chơi
             ["input_quit_gamepad_combo"] = QuitComboStartSelect,
             ["input_exit_emulator"] = "escape",
-            ["quit_press_twice"] = "false",
+            ["quit_press_twice"] = "true",
             ["confirm_quit"] = "false",
+            // Giao diện và thông báo của RetroArch bằng tiếng Việt (RETRO_LANGUAGE_VIETNAMESE = 15)
+            ["user_language"] = "15",
             // Mở menu (đổi đĩa, cấu hình tay cầm): L3+R3 hoặc F1
             ["menu_toggle_gamepad_combo"] = MenuComboL3R3,
             ["input_menu_toggle"] = "f1",
