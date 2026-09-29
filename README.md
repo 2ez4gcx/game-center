@@ -21,6 +21,8 @@ Tải ở mục [Releases](https://github.com/2ez4gcx/game-center/releases). M�
 
 **Windows:** không cần quyền admin, mặc định cài vào `C:\GameCenter` (có thể chọn ổ khác). Game, save, BIOS nằm ngay trong thư mục cài đặt. Gỡ cài đặt **không xóa** game và save.
 
+> ⚠️ **Bản macOS và Linux chưa được kiểm tra trên máy thực.** Mã nguồn đã build và qua kiểm thử tự động cho cả hai hệ, nhưng chưa chạy thử trên một máy Mac hay máy Linux thật. Nếu gặp lỗi, vui lòng [mở issue](https://github.com/2ez4gcx/game-center/issues) kèm file `~/GameCenter/Logs/gamecenter.log`. Bản Windows đã được kiểm tra đầy đủ.
+
 **macOS / Linux:** game, save, BIOS nằm ở thư mục `GameCenter` trong thư mục người dùng (`~/GameCenter`). Trên macOS, lần đầu mở hãy **chuột phải → Mở** vì app chưa được Apple công chứng.
 
 ## Hệ máy hỗ trợ
