@@ -62,8 +62,11 @@ foreach ($core in $cores.Keys) {
     Invoke-WebRequest $cores[$core].License -OutFile (Join-Path $licDir "Core-LICENSES/$($cores[$core].Name).txt") -UseBasicParsing
 }
 
-# 3. Kiểm tra: không có DuckStation
-if (Get-ChildItem $OutDir -Recurse -Filter '*duckstation*' -ErrorAction SilentlyContinue) {
+# 3. Kiểm tra: không có chương trình DuckStation (file chạy / thư viện).
+#    RetroArch tự kèm vài file mô tả có chữ "duckstation" (info/duckstation_libretro.info, shader .params) — không tính.
+$duck = Get-ChildItem $OutDir -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like '*duckstation*' -and $_.Extension -in '.exe', '.dll', '.so', '.dylib', '.appimage' }
+if ($duck) {
     throw 'Phát hiện DuckStation trong thư mục publish — không được đóng gói (mục 2, 17).'
 }
 

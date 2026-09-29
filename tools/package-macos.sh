@@ -81,7 +81,8 @@ cat > "$APP/Contents/Info.plist" <<EOF
 </plist>
 EOF
 
-if find "$APP" -iname '*duckstation*' | grep -q .; then
+# Chỉ chặn chương trình DuckStation; RetroArch tự kèm vài file mô tả có chữ "duckstation" (.info, .params)
+if find "$APP" \( -iname '*duckstation*.dylib' -o -iname 'duckstation*.app' \) | grep -q .; then
     echo "Phát hiện DuckStation — không được đóng gói" >&2; exit 1
 fi
 

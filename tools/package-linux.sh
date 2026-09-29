@@ -79,7 +79,8 @@ curl -fL "https://github.com/AppImage/appimagetool/releases/download/continuous/
 chmod +x "$WORK/appimagetool"
 ARCH=x86_64 "$WORK/appimagetool" --appimage-extract-and-run "$APPDIR" "$OUT/GameCenter-$VERSION-x86_64.AppImage"
 
-if find "$APPDIR" -iname '*duckstation*' | grep -q .; then
+# Chỉ chặn chương trình DuckStation; RetroArch tự kèm vài file mô tả có chữ "duckstation" (.info, .params)
+if find "$APPDIR" -type f \( -iname '*duckstation*.so' -o -iname '*duckstation*.appimage' -o -iname 'duckstation-*' \) | grep -q .; then
     echo "Phát hiện DuckStation — không được đóng gói" >&2; exit 1
 fi
 rm -rf "$WORK"
