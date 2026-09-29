@@ -86,6 +86,31 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 - Khi thoát, Game Center hỏi có **lưu lại chỗ đang chơi** không; lần mở sau hỏi **chơi tiếp** hay **chơi từ đầu**. Tắt được trong Cài đặt.
 - **Cài đặt → Sao lưu dữ liệu** nén toàn bộ save thành file zip có ngày.
 
+**Dùng save thẻ nhớ PS1 có sẵn** (từ giả lập khác hoặc tải về):
+
+1. Tắt game đang chơi (RetroArch chỉ đọc thẻ nhớ lúc mở game).
+2. **Cài đặt → Mở thư mục save**, vào thư mục **`Beetle PSX HW`**:
+   - Windows: `<thư mục cài>\Saves\Beetle PSX HW\` (mặc định `C:\GameCenter\Saves\Beetle PSX HW\`)
+   - macOS / Linux: `~/GameCenter/Saves/Beetle PSX HW/`
+3. Nếu đã có file `.srm` cùng tên, chép ra chỗ khác để sao lưu.
+4. Chép file thẻ nhớ vào và **đổi tên thành đúng tên file game** (tên file gốc, kể cả "(USA)"), đuôi `.srm`:
+
+   | Game chạy từ | Tên file save |
+   |---|---|
+   | `Yu-Gi-Oh! Forbidden Memories (USA).bin` hoặc `.cue` | `Yu-Gi-Oh! Forbidden Memories (USA).srm` |
+   | Nhiều đĩa: `Metal Gear Solid (Disc 1).cue`, `(Disc 2).cue` | `Metal Gear Solid.srm` (dùng chung mọi đĩa) |
+   | `.chd` / `.pbp` | tên file đó + `.srm` |
+
+5. Mở game, vào màn hình Load: save nằm ở Memory Card 1.
+
+| Định dạng thẻ nhớ | Từ đâu | Cách dùng |
+|---|---|---|
+| `.mcr`, `.mcd`, `.mc`, `.srm` (đúng 128 KB) | ePSXe, DuckStation, PCSX, RetroArch | Chỉ cần đổi tên thành `.srm` |
+| `.gme` | DexDrive | Chuyển đổi trước bằng [MemcardRex](https://github.com/ShendoXT/memcardrex) |
+| `.psv`, `.mcs`, `.psx` | PS3, save lẻ từng game | Dùng MemcardRex chép vào thẻ nhớ trống, lưu thành `.mcr`, rồi đổi tên |
+
+File dùng được ngay phải nặng đúng **131.072 byte (128 KB)**.
+
 **Điều khiển launcher bằng tay cầm:** ↑↓ chọn game, A chơi, LB/RB đổi mục, Y yêu thích, X thêm tùy chọn, START cài đặt, SELECT trợ giúp.
 
 ## Phát triển
