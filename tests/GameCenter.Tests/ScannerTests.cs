@@ -284,6 +284,9 @@ public class NameAndConfigTests
         Assert.Equal("l", kv["input_player1_a"]);
         Assert.Equal("nul", kv["input_hold_fast_forward"]);
         Assert.Equal("true", kv["savestate_auto_save"]);
+        // Phải bấm thoát 2 lần; RetroArch hiển thị tiếng Việt
+        Assert.Equal("true", kv["quit_press_twice"]);
+        Assert.Equal("15", kv["user_language"]);
         Assert.Equal("true", kv["video_fullscreen"]);
         Assert.Equal("4", kv["input_quit_gamepad_combo"]);
         Assert.Equal(env.Paths.SavesDir, kv["savefile_directory"]);
@@ -359,5 +362,41 @@ public class KeyboardTests
         Assert.Equal("l", map["a"]);
         Assert.Equal("k", map["b"]);
         Assert.Equal("num1", map["x"]);
+    }
+}
+
+public class CrossPlatformTests
+{
+    [Theory]
+    [InlineData(Os.Windows, "mednafen_psx_hw_libretro.dll")]
+    [InlineData(Os.MacOS, "mednafen_psx_hw_libretro.dylib")]
+    [InlineData(Os.Linux, "mednafen_psx_hw_libretro.so")]
+    public void CoreFileName_PerOs(Os os, string expected) =>
+        Assert.Equal(expected, OsPlatform.CoreFileName("mednafen_psx_hw_libretro.dll", os));
+
+    [Fact]
+    public void RetroArchLocation_PerOs()
+    {
+        var emu = Path.Combine("A", "Emulators");
+        Assert.EndsWith(Path.Combine("RetroArch", "retroarch.exe"), OsPlatform.RetroArchExe(emu, Os.Windows));
+        Assert.EndsWith(Path.Combine("RetroArch.app", "Contents", "MacOS", "RetroArch"), OsPlatform.RetroArchExe(emu, Os.MacOS));
+        Assert.EndsWith(Path.Combine("RetroArch", "retroarch"), OsPlatform.RetroArchExe(emu, Os.Linux));
+        // macOS: core để ngoài RetroArch.app để không làm hỏng chữ ký
+        Assert.Equal(Path.Combine(emu, "cores"), OsPlatform.CoresDir(emu, Os.MacOS));
+    }
+
+    [Fact]
+    public void Config_MacOs_NoVulkan_NoXInput_NoBundledDirs()
+    {
+        using var env = new TestEnv();
+        var mac = new AppPaths(env.Paths.AppDir, env.Paths.DataDir, Os.MacOS);
+        var keys = RetroArchConfig.ManagedKeys(mac, new AppSettings(), vulkanAvailable: false);
+        Assert.Equal("glcore", keys["video_driver"]);
+        Assert.False(keys.ContainsKey("input_joypad_driver"));
+        Assert.False(keys.ContainsKey("libretro_info_path"));
+        Assert.Equal(mac.CoresDir, keys["libretro_directory"]);
+
+        var linux = new AppPaths(env.Paths.AppDir, env.Paths.DataDir, Os.Linux);
+        Assert.Equal("udev", RetroArchConfig.ManagedKeys(linux, new AppSettings(), false)["input_joypad_driver"]);
     }
 }

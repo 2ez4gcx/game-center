@@ -1,6 +1,6 @@
 # Game Center
 
-Launcher **miễn phí** cho game retro trên Windows, thiết kế cho người lớn tuổi: chữ lớn, nút to, điều khiển bằng tay cầm hoặc bàn phím. Mọi hệ máy chạy qua RetroArch.
+Launcher **miễn phí** cho game retro trên **Windows, macOS và Linux**, thiết kế cho người lớn tuổi: chữ lớn, nút to, điều khiển bằng tay cầm hoặc bàn phím. Mọi hệ máy chạy qua RetroArch.
 
 ```text
 Cài đặt → Next → Finish → Chép game → Chơi
@@ -10,12 +10,20 @@ Cài đặt → Next → Finish → Chép game → Chơi
 
 ## Tải về
 
-Tải `GameCenter-Setup-x.y.z.exe` ở mục [Releases](https://github.com/2ez4gcx/game-center/releases). Bộ cài đã kèm sẵn .NET 8, RetroArch và các core giả lập, không cần cài thêm gì.
+Tải ở mục [Releases](https://github.com/2ez4gcx/game-center/releases). Mọi bản đều đã kèm sẵn .NET 8, RetroArch và các core giả lập, không cần cài thêm gì. **Không kèm game hay BIOS.**
 
-- Không cần quyền admin. Mặc định cài vào `C:\GameCenter` (có thể chọn ổ khác).
-- Game, save, BIOS nằm ngay trong thư mục cài đặt: `Games\`, `Saves\`, `States\`, `BIOS\`.
-- Gỡ cài đặt **không xóa** game và save. Cài lại vào cùng chỗ là dùng tiếp.
-- Bộ cài **không kèm game hay BIOS**.
+| Hệ điều hành | File | Cách cài |
+|---|---|---|
+| **Windows** 10/11 (64-bit) | `GameCenter-Setup-x.y.z.exe` | Chạy rồi bấm Next → Finish |
+| **macOS** chip Apple (M1–M4) | `GameCenter-x.y.z-macos-arm64.dmg` | Mở file, kéo **Game Center** vào **Applications** |
+| **macOS** chip Intel | `GameCenter-x.y.z-macos-x86_64.dmg` | Như trên |
+| **Linux** (64-bit) | `GameCenter-x.y.z-x86_64.AppImage` | Cho phép chạy (`chmod +x`) rồi nhấp đúp |
+
+**Windows:** không cần quyền admin, mặc định cài vào `C:\GameCenter` (có thể chọn ổ khác). Game, save, BIOS nằm ngay trong thư mục cài đặt. Gỡ cài đặt **không xóa** game và save.
+
+> ⚠️ **Bản macOS và Linux chưa được kiểm tra trên máy thực.** Mã nguồn đã build và qua kiểm thử tự động cho cả hai hệ, nhưng chưa chạy thử trên một máy Mac hay máy Linux thật. Nếu gặp lỗi, vui lòng [mở issue](https://github.com/2ez4gcx/game-center/issues) kèm file `~/GameCenter/Logs/gamecenter.log`. Bản Windows đã được kiểm tra đầy đủ.
+
+**macOS / Linux:** game, save, BIOS nằm ở thư mục `GameCenter` trong thư mục người dùng (`~/GameCenter`). Trên macOS, lần đầu mở hãy **chuột phải → Mở** vì app chưa được Apple công chứng.
 
 ## Hệ máy hỗ trợ
 
@@ -42,7 +50,7 @@ Game Center **không thay thế** RetroArch mà là lớp giao diện đơn gi�
 | **PS1** | Tự xử lý `.cue`, tự viết `.m3u` cho game nhiều đĩa | Tự ghép đĩa, tự tạo `.cue` cho `.bin` lẻ, tự tạo `.m3u` |
 | **Giao diện** | Menu nhiều tầng, chữ nhỏ, hàng trăm tùy chọn | Một màn hình, chữ lớn, nút "Chơi" |
 | **Điều khiển** | Phải tự gán phím, phím tắt mặc định dễ bấm nhầm (tua nhanh, tạm dừng…) | Phím WASD/IJKL có sẵn, đã tắt các phím tắt dễ nhầm, gán lại bằng cửa sổ đơn giản |
-| **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình (START + SELECT hoặc Esc) |
+| **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình; phải bấm 2 lần mới thoát để tránh lỡ tay |
 | **Save state** | Lưu/nạp thủ công, hoặc tự động ngầm | Hỏi khi thoát và khi mở lại, bằng câu dễ hiểu |
 | **Tiện ích** | Có nhưng nằm sâu trong menu | Yêu thích, chơi gần đây, tìm kiếm không dấu, sao lưu save |
 
@@ -73,7 +81,7 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 |---|---|
 | ![Chế độ bàn phím](docs/anh/che-do-ban-phim.png) | ![Thiết lập phím](docs/anh/thiet-lap-phim.png) |
 
-**Thoát game:** giữ **START + SELECT** trên tay cầm, hoặc bấm **Esc**. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh.
+**Thoát game:** bấm **START + SELECT** trên tay cầm, hoặc **Esc** trên bàn phím, **2 lần liên tiếp**. Lần đầu chỉ hiện "Nhấn lại để thoát...", để lỡ chạm một lần không mất game đang chơi. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh. Menu và thông báo của giả lập hiển thị bằng tiếng Việt.
 
 **Save game:**
 - Save trong game (memory card, save trong băng) luôn được giữ, tự ghi xuống ổ mỗi 10 giây.
@@ -83,7 +91,9 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 **Dùng save thẻ nhớ PS1 có sẵn** (từ giả lập khác hoặc tải về):
 
 1. Tắt game đang chơi (RetroArch chỉ đọc thẻ nhớ lúc mở game).
-2. **Cài đặt → Mở thư mục save**, vào thư mục **`Beetle PSX HW`** (mặc định `C:\GameCenter\Saves\Beetle PSX HW\`).
+2. **Cài đặt → Mở thư mục save**, vào thư mục **`Beetle PSX HW`**:
+   - Windows: `<thư mục cài>\Saves\Beetle PSX HW\` (mặc định `C:\GameCenter\Saves\Beetle PSX HW\`)
+   - macOS / Linux: `~/GameCenter/Saves/Beetle PSX HW/`
 3. Nếu đã có file `.srm` cùng tên, chép ra chỗ khác để sao lưu.
 4. Chép file thẻ nhớ vào và **đổi tên thành đúng tên file game** (tên file gốc, kể cả "(USA)"), đuôi `.srm`:
 
@@ -111,7 +121,7 @@ Cần .NET 8 SDK.
 
 ```
 dotnet test
-dotnet run --project src/GameCenter.App
+dotnet run --project src/GameCenter.Desktop
 ```
 
 Chạy với thư mục dữ liệu riêng khi kiểm thử: đặt biến môi trường `GAMECENTER_DATA_DIR`.
@@ -119,11 +129,13 @@ Chạy với thư mục dữ liệu riêng khi kiểm thử: đặt biến môi 
 | Thư mục | Nội dung |
 |---|---|
 | `src/GameCenter.Core` | Quét và nhận diện game, SQLite, sinh `retroarch.cfg`, sơ đồ phím, save state, khởi chạy RetroArch |
-| `src/GameCenter.App` | Giao diện WPF, điều khiển bằng tay cầm XInput |
+| `src/GameCenter.Desktop` | Giao diện Avalonia (Windows / macOS / Linux), đọc tay cầm bằng SDL2 |
 | `tests/GameCenter.Tests` | Kiểm thử |
 | `Defaults/` | `platforms.json` (core từng hệ máy), `retroarch-base.cfg` |
 | `Licenses/` | Giấy phép Game Center, RetroArch và từng core |
-| `installer/` | Bộ cài Inno Setup 7 |
+| `installer/` | Bộ cài Windows (Inno Setup) |
+| `tools/package-linux.sh`, `tools/package-macos.sh` | Đóng gói AppImage (Linux) và .dmg (macOS) |
+| `.github/workflows/release.yml` | Kiểm thử trên 3 hệ điều hành; push tag `v*` thì tự đóng gói và tạo bản nháp Release |
 | `tools/fetch-retroarch.ps1` | Tải RetroArch, core và LICENSE vào thư mục publish |
 
 Phát hành:
@@ -132,6 +144,13 @@ Phát hành:
 ./build.ps1                                                   # test + publish self-contained (kèm .NET 8)
 ./tools/fetch-retroarch.ps1 -Version 1.22.2                   # RetroArch + core + LICENSE
 & "C:\Program Files\Inno Setup 7\ISCC.exe" installer\GameCenter.iss
+```
+
+Linux / macOS (chạy trên chính hệ đó, hoặc để GitHub Actions build khi push tag):
+
+```
+bash tools/package-linux.sh 1.22.2
+bash tools/package-macos.sh arm64 1.22.2      # hoặc x86_64
 ```
 
 Thiết kế chi tiết: [GAME_CENTER_IMPLEMENTATION.md](GAME_CENTER_IMPLEMENTATION.md).

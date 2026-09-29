@@ -1,0 +1,163 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GameCenter.Desktop"
+        x:Class="GameCenter.Desktop.MainWindow"
+        Title="Game Center" Width="1320" Height="860" MinWidth="960" MinHeight="620"
+        WindowStartupLocation="CenterScreen">
+    <Panel>
+        <!-- Lưới mờ và quầng sáng trang trí phía sau -->
+        <local:GridBackdrop Opacity="0.06" IsHitTestVisible="False"/>
+        <Ellipse Width="700" Height="700" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-380,-260,0" IsHitTestVisible="False" Opacity="0.35">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#6600E5FF" Offset="0"/>
+                    <GradientStop Color="#0000E5FF" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Ellipse Width="620" Height="620" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="120,0,0,-360" IsHitTestVisible="False" Opacity="0.3">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#66FF3D9A" Offset="0"/>
+                    <GradientStop Color="#00FF3D9A" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid ColumnDefinitions="300,*">
+            <!-- ============ SIDEBAR ============ -->
+            <Border Background="{StaticResource Sidebar}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+                <DockPanel Margin="18,22,18,14">
+                    <StackPanel DockPanel.Dock="Top" Margin="6,0,0,22">
+                        <TextBlock Text="GAME CENTER" FontFamily="{StaticResource TechFont}" FontSize="32" FontWeight="Bold"
+                                   Foreground="{StaticResource Brand}"/>
+                        <TextBlock Text="RETRO  ·  ARCADE  ·  CONSOLE" FontFamily="{StaticResource TechFont}" FontSize="12"
+                                   Foreground="{StaticResource FgDim}" Margin="2,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Cách điều khiển -->
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <TextBlock Text="CÁCH ĐIỀU KHIỂN" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,8"/>
+                        <Border CornerRadius="13" Background="#80101A30" BorderBrush="{StaticResource Line}" BorderThickness="1.5">
+                            <UniformGrid Columns="2">
+                                <RadioButton x:Name="ModeGamepad" Classes="segment" GroupName="mode" Tag="gamepad" IsCheckedChanged="Mode_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="🎮" FontSize="22" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Tay cầm" FontSize="16" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton x:Name="ModeKeyboard" Classes="segment" GroupName="mode" Tag="keyboard" IsCheckedChanged="Mode_Changed">
+                                    <StackPanel>
+                                        <TextBlock Text="⌨" FontSize="22" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Bàn phím" FontSize="16" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </RadioButton>
+                            </UniformGrid>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Margin="8,10,0,0">
+                            <Ellipse x:Name="PadDot" Width="10" Height="10" Fill="#607D8B" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="PadStatus" Text="Chưa thấy tay cầm" FontSize="15" Foreground="{StaticResource FgDim}" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <Button x:Name="ControlSetupButton" Classes="big" Content="⚙  Thiết lập nút" Margin="0,10,0,0"
+                                HorizontalAlignment="Stretch" Click="ControlSetup_Click"/>
+                        <TextBlock x:Name="AuthorText" FontFamily="{StaticResource TechFont}" FontSize="12" Opacity="0.55"
+                                   Foreground="{StaticResource FgDim}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                    <!-- Điều hướng: LB/RB trên tay cầm -->
+                    <TextBlock DockPanel.Dock="Top" Text="THƯ VIỆN" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,6"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Hidden" Margin="0,0,0,16">
+                        <StackPanel x:Name="TabsPanel"/>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- ============ NỘI DUNG ============ -->
+            <Grid Grid.Column="1" Margin="28,22,28,18" RowDefinitions="Auto,Auto,*,Auto">
+                <!-- Thanh trên: tìm kiếm + nút -->
+                <DockPanel Grid.Row="0">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Classes="big" Content="⟳  Quét" Click="Scan_Click" ToolTip.Tip="Quét game mới"/>
+                        <Button Classes="big" Content="📂  Thư mục game" Click="OpenGamesFolder_Click"/>
+                        <Button Classes="big" Content="⚙" FontSize="24" Padding="12,4" Click="Settings_Click" ToolTip.Tip="Cài đặt"/>
+                        <Button Classes="big" Content="?" FontSize="24" Padding="14,4" Click="Help_Click" ToolTip.Tip="Trợ giúp"/>
+                    </StackPanel>
+                    <TextBox x:Name="SearchBox" Margin="0,6,12,6" Watermark="⌕   Tìm game…" TextChanged="SearchBox_TextChanged"/>
+                </DockPanel>
+
+                <!-- Tiêu đề mục -->
+                <DockPanel Grid.Row="1" Margin="4,18,4,10">
+                    <TextBlock x:Name="StatusText" DockPanel.Dock="Right" VerticalAlignment="Bottom" FontFamily="{StaticResource TechFont}" FontSize="17" Foreground="{StaticResource FgDim}"/>
+                    <TextBlock x:Name="SectionTitle" Text="Tất cả" FontFamily="{StaticResource TechFont}" FontSize="34" FontWeight="SemiBold"/>
+                </DockPanel>
+
+                <!-- Danh sách game -->
+                <Panel Grid.Row="2">
+                    <ListBox x:Name="GameList" Classes="games" DoubleTapped="GameList_DoubleTapped" KeyDown="GameList_KeyDown"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="local:GameItem">
+                                <Border Classes="card">
+                                    <Grid ColumnDefinitions="104,*,Auto">
+                                        <!-- Ảnh bìa hoặc ô màu theo hệ máy -->
+                                        <Border Width="88" Height="88" CornerRadius="12" HorizontalAlignment="Left" ClipToBounds="True"
+                                                BorderBrush="{Binding PlatformBrush}" BorderThickness="1.5" Background="{Binding TileBrush}">
+                                            <Panel>
+                                                <TextBlock Text="{Binding PlatformShort}" FontFamily="{StaticResource TechFont}" FontSize="22" FontWeight="Bold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#F2F7FF"
+                                                           IsVisible="{Binding !HasCover}"/>
+                                                <Image Source="{Binding Cover}" Stretch="UniformToFill" IsVisible="{Binding HasCover}"/>
+                                            </Panel>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0">
+                                            <TextBlock Text="{Binding Name}" FontSize="28" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <Border CornerRadius="8" Padding="10,2" BorderThickness="1.2" BorderBrush="{Binding PlatformBrush}" Background="{Binding PlatformBrushFaint}">
+                                                    <TextBlock Text="{Binding PlatformName}" FontFamily="{StaticResource TechFont}" FontSize="15" FontWeight="SemiBold" Foreground="{Binding PlatformBrush}"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Meta}" FontSize="17" Foreground="{StaticResource FgDim}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Warning}" FontSize="17" Foreground="{StaticResource Warn}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                                       IsVisible="{Binding HasWarning}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Classes="big" Content="{Binding FavoriteIcon}" Foreground="{Binding FavoriteBrush}" FontSize="24" Padding="12,4"
+                                                    ToolTip.Tip="Yêu thích" Click="Favorite_Click" Focusable="False"/>
+                                            <Button Classes="big" Content="⋯" FontSize="24" Padding="12,4"
+                                                    ToolTip.Tip="Thêm" Click="More_Click" Focusable="False"/>
+                                            <Button Classes="big play" Content="{Binding PlayLabel}" Click="Play_Click" Focusable="False"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Khi chưa có game -->
+                    <Border x:Name="EmptyPanel" Background="{StaticResource Panel}" BorderBrush="{StaticResource LineStrong}" BorderThickness="1.5" CornerRadius="18" Padding="40"
+                            VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="False" BoxShadow="0 0 12 0 #7300E5FF">
+                        <StackPanel MaxWidth="760">
+                            <TextBlock x:Name="EmptyTitle" Text="Chưa có game nào" FontFamily="{StaticResource TechFont}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Accent}" Margin="0,0,0,12"/>
+                            <TextBlock x:Name="EmptyText" FontSize="22" TextWrapping="Wrap" LineHeight="32"/>
+                            <WrapPanel Margin="0,20,0,0">
+                                <Button Classes="big" Content="📂  Mở thư mục game" Click="OpenGamesFolder_Click"/>
+                                <Button Classes="big play" Content="⟳  Quét game mới" Click="Scan_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </Panel>
+
+                <!-- Luôn hiển thị cách thoát game (đổi theo cách điều khiển) -->
+                <Border Grid.Row="3" CornerRadius="14" Padding="18,12" Margin="0,14,0,0" BorderThickness="1.5" BorderBrush="{StaticResource Accent2}" Background="#33FF3D9A">
+                    <DockPanel>
+                        <TextBlock x:Name="ControlHint" DockPanel.Dock="Right" FontSize="17" Foreground="{StaticResource FgDim}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="⏏  THOÁT GAME:" FontSize="22" FontWeight="Bold" Foreground="{StaticResource Accent2}"/>
+                            <TextBlock x:Name="ExitHint" Text="bấm START + SELECT 2 lần" FontSize="22" FontWeight="Bold" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Panel>
+</Window>

@@ -61,9 +61,9 @@ public sealed class EmulatorLauncher
         if (!File.Exists(_paths.RetroArchExe))
             return new(LaunchProblem.RetroArchMissing, "Thiếu RetroArch trong thư mục cài đặt. Hãy cài lại Game Center.");
 
-        var core = Path.Combine(_paths.CoresDir, platform.Core);
+        var core = _paths.CorePath(platform.Core);
         if (!File.Exists(core))
-            return new(LaunchProblem.CoreMissing, $"Thiếu thành phần giả lập cho {platform.DisplayName} ({platform.Core}). Hãy cài lại Game Center.");
+            return new(LaunchProblem.CoreMissing, $"Thiếu thành phần giả lập cho {platform.DisplayName} ({Path.GetFileName(core)}). Hãy cài lại Game Center.");
 
         var bios = BiosChecker.Check(platform, _paths.BiosDir);
         if (bios == BiosState.Missing)

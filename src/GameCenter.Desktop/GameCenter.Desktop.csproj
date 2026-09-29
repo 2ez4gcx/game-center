@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>GameCenter</AssemblyName>
+    <RootNamespace>GameCenter.Desktop</RootNamespace>
+    <Product>Game Center</Product>
+    <Version>0.2.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <!-- SDL2: đọc tay cầm trên Windows, macOS, Linux (kèm thư viện native) -->
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.82" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameCenter.Core\GameCenter.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Defaults/ và Licenses/ nằm cạnh file chạy (thư mục ứng dụng, chỉ đọc) -->
+  <ItemGroup>
+    <None Include="..\..\Defaults\**\*" Link="Defaults\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Licenses\**\*" Link="Licenses\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
