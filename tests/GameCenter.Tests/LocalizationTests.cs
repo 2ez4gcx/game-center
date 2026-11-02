@@ -61,7 +61,7 @@ public class LocalizationTests
         {
             var text = File.ReadAllText(file);
             foreach (Match m in keyLiteral.Matches(text))
-                if (!Regex.IsMatch(m.Groups[1].Value, @"\.(json|cfg|db|log|ini|txt)$")) used.Add(m.Groups[1].Value); // tên file, không phải khóa
+                if (!Regex.IsMatch(m.Groups[1].Value, @"\.(json|cfg|db|log|ini|txt|cue|bin|iso|chd|m3u|pbp|srm)$")) used.Add(m.Groups[1].Value); // tên file, không phải khóa
             foreach (Match m in xamlKey.Matches(text)) used.Add(m.Groups[1].Value);
         }
         Assert.True(used.Count > 100, $"Chỉ tìm thấy {used.Count} khóa");

@@ -95,6 +95,8 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 - Save trong game (memory card, save trong băng) luôn được giữ, tự ghi xuống ổ mỗi 10 giây.
 - Khi thoát, Game Center hỏi có **lưu lại chỗ đang chơi** không; lần mở sau hỏi **chơi tiếp** hay **chơi từ đầu**. Tắt được trong Cài đặt.
 - **Cài đặt → Sao lưu dữ liệu** nén toàn bộ save thành file zip có ngày.
+- Mỗi lần bấm Chơi, Game Center tự sao lưu save của game đó (giữ 10 bản gần nhất). Lỡ hỏng save: bấm **⋯ → Khôi phục save cũ** và chọn thời điểm.
+- Đổi tên file game, chép thêm đĩa cho game nhiều đĩa, đổi thư mục dữ liệu: save cũ tự đi theo. "Chơi tiếp" không bao giờ ghi đè save trong game mới hơn. Chi tiết và cách kiểm thử: [docs/bao-toan-save.md](docs/bao-toan-save.md).
 
 **Dùng save thẻ nhớ PS1 có sẵn** (từ giả lập khác hoặc tải về):
 
@@ -152,8 +154,11 @@ Phát hành:
 ```
 ./build.ps1                                                   # test + publish self-contained (kèm .NET 8)
 ./tools/fetch-retroarch.ps1 -Version 1.22.2                   # RetroArch + core + LICENSE
+./tools/e2e-test.ps1 -AppDir ./publish/GameCenter             # kiểm thử với RetroArch thật (save, nhiều đĩa)
 & "C:\Program Files\Inno Setup 7\ISCC.exe" installer\GameCenter.iss
 ```
+
+Trước khi phát hành: chạy `e2e-test.ps1` và làm hết checklist thủ công trong [docs/bao-toan-save.md](docs/bao-toan-save.md#43-thủ-công--checklist-bắt-buộc-trước-khi-phát-hành).
 
 Linux / macOS (chạy trên chính hệ đó, hoặc để GitHub Actions build khi push tag):
 

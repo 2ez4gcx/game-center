@@ -114,6 +114,7 @@ public sealed class GameScanner
             var merged = NewGame(discs[0].SourceFile, discs[0].Platform, name, discs.Sum(d => d.FileSize));
             merged.LaunchFile = discs[0].LaunchFile;
             merged.Discs.AddRange(discs.Select(d => d.LaunchFile));
+            NoteMissingDiscs(merged, discs.Select(d => NameCleaner.DiscNumberOf(DiscName(d)!)));
             games.RemoveAll(discs.Contains);
             games.Add(merged);
         }
@@ -222,6 +223,7 @@ public sealed class GameScanner
                 g.Discs.Add(c.CuePath);
                 ConsumeCue(c, consumed, g);
             }
+            NoteMissingDiscs(g, discs.Select(c => NameCleaner.DiscNumberOf(Path.GetFileNameWithoutExtension(c.CuePath))));
             dirGames.Add(g);
         }
         foreach (var cue in cues.Where(c => !inMulti.Contains(c)))
@@ -473,9 +475,22 @@ public sealed class GameScanner
             var merged = NewGame(discs[0].SourceFile, discs[0].Platform, NameCleaner.StripDisc(BaseName(discs[0])), discs.Sum(d => d.FileSize));
             merged.LaunchFile = discs[0].LaunchFile;
             merged.Discs.AddRange(discs.Select(d => d.LaunchFile));
+            NoteMissingDiscs(merged, discs.Select(d => NameCleaner.DiscNumberOf(BaseName(d))));
             dirGames.RemoveAll(discs.Contains);
             dirGames.Add(merged);
         }
+    }
+
+    /// <summary>
+    /// Bộ nhiều đĩa thiếu đĩa ở giữa (có đĩa 1, 3 nhưng không có đĩa 2): vẫn chơi được tới lúc cần đĩa thiếu,
+    /// nhưng báo trước để người chơi bổ sung (đổi đĩa sẽ nhảy sang đĩa sai số).
+    /// </summary>
+    private static void NoteMissingDiscs(ScannedGame g, IEnumerable<int?> numbers)
+    {
+        var have = numbers.Where(n => n != null).Select(n => n!.Value).ToHashSet();
+        if (have.Count == 0 || g.Status != ScanStatus.Ok) return;
+        var missing = Enumerable.Range(1, have.Max()).Where(n => !have.Contains(n)).ToList();
+        if (missing.Count > 0) g.Message = Loc.T("scan.missing_discs", string.Join(", ", missing));
     }
 
     /// <summary>File không chạy được nhưng nhận ra: báo cách xử lý trong mục "Chưa nhận ra".</summary>

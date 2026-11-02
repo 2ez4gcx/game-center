@@ -96,6 +96,24 @@ public sealed class EmulatorLauncher
         return psi;
     }
 
+    /// <summary>
+    /// Thêm file cấu hình phụ chỉ áp dụng cho lần chạy này (nạp chỗ đang chơi, thư mục save riêng...):
+    /// "--appendconfig a.cfg|b.cfg" chèn trước "-L" (RetroArch tách nhiều file bằng "|").
+    /// </summary>
+    public static void AddAppendConfigs(ProcessStartInfo psi, IReadOnlyCollection<string> configFiles)
+    {
+        if (configFiles.Count == 0) return;
+        int existing = psi.ArgumentList.IndexOf("--appendconfig");
+        if (existing >= 0)
+        {
+            psi.ArgumentList[existing + 1] = string.Join("|", configFiles.Prepend(psi.ArgumentList[existing + 1]));
+            return;
+        }
+        int at = Math.Max(0, psi.ArgumentList.IndexOf("-L"));
+        psi.ArgumentList.Insert(at, "--appendconfig");
+        psi.ArgumentList.Insert(at + 1, string.Join("|", configFiles));
+    }
+
     /// <summary>Chạy game và chờ đến khi thoát.</summary>
     public async Task<int> RunAsync(ProcessStartInfo psi, CancellationToken ct = default)
     {

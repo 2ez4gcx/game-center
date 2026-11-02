@@ -201,7 +201,11 @@ public sealed class SettingsWindow : Window
                 var newPaths = new AppPaths(App.Paths.AppDir, _newDataDir);
                 newPaths.EnsureDataFolders();
                 if (!File.Exists(newPaths.SettingsJson)) s.Save(newPaths.SettingsJson);
-                await Dialogs.Info(this, Loc.T("settings.data_dir_changed_title"), Loc.T("settings.data_dir_changed_text"));
+                // Mang save sang thư mục mới để không "mất" save (thư mục cũ giữ nguyên)
+                int copied = await Task.Run(() => BackupService.CopyUserData(App.Paths, newPaths));
+                var text = Loc.T("settings.data_dir_changed_text");
+                if (copied > 0) text += "\n\n" + Loc.T("settings.data_dir_copied", copied);
+                await Dialogs.Info(this, Loc.T("settings.data_dir_changed_title"), text);
             }
         }
         catch (Exception ex)

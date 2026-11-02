@@ -352,20 +352,36 @@ public partial class MainWindow : Window
         try { RetroArchConfig.Write(App.Paths, App.Settings); }
         catch (Exception ex) { Log.Error("Không ghi được retroarch.cfg", ex); }
 
+        // Bảo vệ save (docs/bao-toan-save.md): game trùng tên file với game khác lưu ở thư mục riêng,
+        // nhận lại save từ tên cũ, sao lưu trước khi chơi. DuckStation tự quản lý save của nó.
+        bool retroArch = !(App.Settings.UseUserDuckStation && item.Record.Platform == "PS1");
+        var launchFile = item.Record.LaunchFile;
+        var appendConfigs = new List<string>();
+        SaveLocation? saves = null;
+        if (retroArch)
+        {
+            var guard = new SaveGuard(App.Paths);
+            try { saves = guard.Locate(item.Record, App.Db.GetGames(includeMissing: true), App.Catalog); }
+            catch (Exception ex) { Log.Error("Không xác định được nơi lưu save", ex); }
+            if (saves != null)
+            {
+                guard.PrepareForLaunch(App.Db, item.Record, saves);
+                if (SaveGuard.AppendConfig(saves) is { } perGame)
+                    appendConfigs.Add(WriteAppendConfig("save-dir.cfg", perGame));
+            }
+        }
+
         // Save state của giả lập: hỏi chơi tiếp hay chơi từ đầu (save trong game luôn được giữ)
-        bool useStates = App.Settings.AskSaveStateOnExit && !App.Settings.UseUserDuckStation;
-        var states = new SaveStateService(App.Paths.StatesDir);
-        if (useStates && states.FindAutoState(item.Record.LaunchFile) != null)
+        bool useStates = App.Settings.AskSaveStateOnExit && retroArch;
+        var states = new SaveStateService(saves?.StatesDir ?? App.Paths.StatesDir);
+        if (useStates && states.FindAutoState(launchFile) != null)
         {
             bool resume = await Dialogs.Confirm(this, item.Name, Loc.T("play.resume_text"),
                 yes: Loc.T("play.resume_yes"), no: Loc.T("play.resume_no"));
-            if (resume)
-            {
-                // Chèn trước "-L": chỉ lần chạy này mới nạp save state
-                plan.StartInfo!.ArgumentList.Insert(2, "--appendconfig");
-                plan.StartInfo!.ArgumentList.Insert(3, WriteResumeConfig());
-            }
+            // Chỉ lần chạy này mới nạp save state
+            if (resume) appendConfigs.Add(WriteAppendConfig("resume.cfg", "savestate_auto_load = \"true\"\n"));
         }
+        EmulatorLauncher.AddAppendConfigs(plan.StartInfo!, appendConfigs);
 
         _gameRunning = true;
         Gamepad.Instance.Suspended = true;
@@ -373,11 +389,11 @@ public partial class MainWindow : Window
         try
         {
             App.Db.MarkPlayed(item.Record.Id);
-            var previous = useStates ? states.BackupBeforePlay(item.Record.LaunchFile) : null;
+            var previous = useStates ? states.BackupBeforePlay(launchFile) : null;
             Hide();
             await launcher.RunAsync(plan.StartInfo!);
             BringToFront();
-            if (useStates) await AskKeepSaveState(item, states, startedUtc, previous);
+            if (useStates) await AskKeepSaveState(item, launchFile, states, startedUtc, previous);
         }
         catch (Exception ex)
         {
@@ -396,18 +412,18 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>File cấu hình phụ chỉ bật nạp save state cho lần chạy này.</summary>
-    private static string WriteResumeConfig()
+    /// <summary>File cấu hình phụ chỉ áp dụng cho lần chạy này (nạp save state, thư mục save riêng...).</summary>
+    private static string WriteAppendConfig(string name, string content)
     {
-        var path = Path.Combine(App.Paths.ConfigDir, "resume.cfg");
-        File.WriteAllText(path, "savestate_auto_load = \"true\"\n");
+        var path = Path.Combine(App.Paths.ConfigDir, name);
+        File.WriteAllText(path, content);
         return path;
     }
 
     /// <summary>Sau khi thoát game: hỏi có lưu lại chỗ đang chơi không. Bắt buộc chọn (Esc/B không đóng được).</summary>
-    private async Task AskKeepSaveState(GameItem item, SaveStateService states, DateTime startedUtc, string? previous)
+    private async Task AskKeepSaveState(GameItem item, string launchFile, SaveStateService states, DateTime startedUtc, string? previous)
     {
-        var state = states.NewStateSince(item.Record.LaunchFile, startedUtc);
+        var state = states.NewStateSince(launchFile, startedUtc);
         if (state == null)
         {
             // Giả lập không chụp được (ví dụ bị tắt ngang): giữ nguyên bản cũ, bỏ bản sao lưu
@@ -466,9 +482,38 @@ public partial class MainWindow : Window
             (Loc.T("more.choose_platform"), () => ChoosePlatform(item)),
             (Loc.T("more.choose_cover"), () => ChooseCover(item)),
             (Loc.T(item.Record.IsFavorite ? "more.unfavorite" : "more.favorite"), () => { ToggleFavorite(item); return Task.CompletedTask; }),
+            (Loc.T("more.restore_save"), () => RestoreSave(item)),
         };
         int i = await Dialogs.Choose(this, item.Name, null, options.Select(o => o.Label).ToList());
         if (i >= 0) await options[i].Run();
+    }
+
+    /// <summary>Khôi phục save từ các bản sao lưu tự động (tạo mỗi lần trước khi chơi).</summary>
+    private async Task RestoreSave(GameItem item)
+    {
+        var guard = new SaveGuard(App.Paths);
+        var saves = guard.Locate(item.Record, App.Db.GetGames(includeMissing: true), App.Catalog);
+        var backups = guard.ListBackups(saves);
+        if (backups.Count == 0)
+        {
+            await Dialogs.Info(this, Loc.T("restore.title"), Loc.T("restore.none"));
+            return;
+        }
+        string When(SaveBackup b) => $"{Loc.Date(b.Time)}  {b.Time:HH:mm:ss}";
+        int i = await Dialogs.Choose(this, Loc.T("restore.title"), Loc.T("restore.text"), backups.Select(When).ToList());
+        if (i < 0) return;
+        if (!await Dialogs.Confirm(this, Loc.T("restore.title"), Loc.T("restore.confirm", item.Name, When(backups[i])),
+                yes: Loc.T("restore.yes"), no: Loc.T("dialog.cancel"))) return;
+        try
+        {
+            guard.Restore(saves, backups[i]);
+            await Dialogs.Info(this, Loc.T("restore.title"), Loc.T("restore.done"));
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Khôi phục save lỗi", ex);
+            await Dialogs.Info(this, Loc.T("settings.save_error_title"), ex.Message);
+        }
     }
 
     private async Task Rename(GameItem item)

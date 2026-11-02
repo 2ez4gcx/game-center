@@ -89,6 +89,8 @@ Change keys with **Set up keys** (click a box, then press the new key).
 - In-game saves (memory cards, cartridge saves) are always kept and written to disk every 10 seconds.
 - When you exit, Game Center asks whether to **save your place**; next time it asks whether to **continue** or **start over**. This can be turned off in Settings.
 - **Settings → Back up saves** zips all saves (including PS2 memory cards) into a dated file.
+- Every time you click Play, Game Center backs up that game's saves (the last 10 are kept). If a save gets damaged: **⋯ → Restore an older save** and pick a point in time.
+- Renaming game files, adding more discs to a multi-disc game, or changing the data folder: your existing saves follow automatically. "Continue" never overwrites a newer in-game save. Details and test procedure (Vietnamese): [docs/bao-toan-save.md](docs/bao-toan-save.md).
 
 **Using an existing PS1 memory card save** (from another emulator or downloaded):
 
@@ -146,8 +148,11 @@ Release:
 ```
 ./build.ps1                                                   # test + self-contained publish (bundles .NET 8)
 ./tools/fetch-retroarch.ps1 -Version 1.22.2                   # RetroArch + cores + licenses
+./tools/e2e-test.ps1 -AppDir ./publish/GameCenter             # tests with the real RetroArch (saves, multi-disc)
 & "C:\Program Files\Inno Setup 7\ISCC.exe" installer\GameCenter.iss
 ```
+
+Before releasing: run `e2e-test.ps1` and go through the manual checklist in [docs/bao-toan-save.md](docs/bao-toan-save.md) (section 4.3).
 
 Linux / macOS (run on that OS, or let GitHub Actions build on tag push):
 

@@ -76,6 +76,8 @@ public sealed class GameItem : INotifyPropertyChanged
         ScanStatus.BrokenCue => "⚠ " + (Record.ScanMessage ?? Loc.T("game.file_missing")),
         // File nén cần giải nén, máy chưa hỗ trợ...: hiện đúng lý do; còn lại nhắc chọn hệ máy
         ScanStatus.Unknown => Record.ScanMessage ?? Loc.T("game.unknown_hint"),
+        // Chơi được nhưng cần lưu ý (ví dụ bộ nhiều đĩa thiếu đĩa)
+        ScanStatus.Ok when Record.ScanMessage != null => "⚠ " + Record.ScanMessage,
         _ => null,
     };
 

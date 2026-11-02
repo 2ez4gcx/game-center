@@ -99,6 +99,10 @@ public static class RetroArchConfig
             ["config_save_on_exit"] = "true",
             // Game Center tự quản lý lịch sử chơi; không để RetroArch ghi playlist vào thư mục cài đặt
             ["history_list_enable"] = "false",
+            // RetroArch mặc định ghi thời gian chơi (.lrtl) vào playlists/logs cạnh retroarch.exe, tức thư mục cài đặt
+            // (macOS / Linux: chỉ đọc). Game Center đã đếm số lần và lần chơi cuối nên tắt.
+            ["content_runtime_log"] = "false",
+            ["content_runtime_log_aggregate"] = "false",
         };
 
         // Thư mục đi kèm RetroArch (Windows/Linux); macOS dùng mặc định bên trong RetroArch.app
@@ -125,7 +129,9 @@ public static class RetroArchConfig
         // - Save state: RetroArch chụp lại khi thoát, Game Center hỏi người chơi giữ hay bỏ.
         //   Không tự nạp: chỉ nạp khi người chơi chọn "Chơi tiếp" (Game Center truyền --appendconfig).
         keys["autosave_interval"] = "10";
-        keys["block_sram_overwrite"] = "false";
+        // Save state của Beetle PSX chứa cả dữ liệu thẻ nhớ: nạp state cũ ("Chơi tiếp") mà không chặn thì thẻ nhớ
+        // bị kéo về lúc chụp state, mất các lần save trong game làm sau đó. Chặn: thẻ nhớ luôn giữ bản mới nhất trên ổ.
+        keys["block_sram_overwrite"] = "true";
         keys["savestate_auto_save"] = settings.AskSaveStateOnExit ? "true" : "false";
         keys["savestate_auto_load"] = "false";
         keys["savestate_auto_index"] = "false";
@@ -148,6 +154,11 @@ public static class RetroArchConfig
         return new Dictionary<string, string>
         {
             ["beetle_psx_hw_renderer"] = useVulkan ? "hardware_vk" : "software",
+            // Cố định cách lưu thẻ nhớ để save luôn ở chỗ Game Center tìm và sao lưu (docs/bao-toan-save.md):
+            // PS1: thẻ nhớ 1 là "<tên file chạy>.srm" trong Saves/ (đổi sang "mednafen" thì save thành .mcr ở chỗ khác)
+            ["beetle_psx_hw_use_mednafen_memcard0_method"] = "libretro",
+            // PS2: thẻ nhớ dùng chung mọi game như máy thật (BIOS/pcsx2/memcards), không phụ thuộc tên file game
+            ["pcsx2_shared_memory_cards"] = "enabled",
         };
     }
 

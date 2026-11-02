@@ -31,4 +31,27 @@ public static class BackupService
         }
         return zipPath;
     }
+
+    /// <summary>
+    /// Đổi thư mục dữ liệu: chép save, save state, sao lưu tự động và BIOS sang thư mục mới để không "mất" save.
+    /// Không ghi đè file đã có ở thư mục mới, không xóa gì ở thư mục cũ. Game (Games/) không chép vì có thể rất lớn.
+    /// Trả về số file đã chép.
+    /// </summary>
+    public static int CopyUserData(AppPaths from, AppPaths to)
+    {
+        int copied = 0;
+        foreach (var (src, dst) in new[] { (from.SavesDir, to.SavesDir), (from.StatesDir, to.StatesDir), (from.BiosDir, to.BiosDir), (from.BackupsDir, to.BackupsDir) })
+        {
+            if (!Directory.Exists(src) || string.Equals(Path.GetFullPath(src), Path.GetFullPath(dst), StringComparison.OrdinalIgnoreCase)) continue;
+            foreach (var file in Directory.EnumerateFiles(src, "*", SearchOption.AllDirectories))
+            {
+                var dest = Path.Combine(dst, Path.GetRelativePath(src, file));
+                if (File.Exists(dest)) continue;
+                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                File.Copy(file, dest);
+                copied++;
+            }
+        }
+        return copied;
+    }
 }

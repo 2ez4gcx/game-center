@@ -23,12 +23,16 @@ public sealed class SaveStateService
     }
 
     /// <summary>File save state tự động của game (tìm trong mọi thư mục con theo core).</summary>
-    public string? FindAutoState(string launchFile)
+    public string? FindAutoState(string launchFile) => FindAutoStateByName(ContentName(launchFile));
+
+    /// <summary>File save state tự động theo tên save (tên file chạy, bỏ đuôi).</summary>
+    public string? FindAutoStateByName(string contentName)
     {
         if (!Directory.Exists(_statesDir)) return null;
-        var name = ContentName(launchFile) + AutoSuffix;
+        var name = contentName + AutoSuffix;
         return Directory.EnumerateFiles(_statesDir, "*" + AutoSuffix, SearchOption.AllDirectories)
-            .Where(f => string.Equals(Path.GetFileName(f), name, StringComparison.OrdinalIgnoreCase))
+            .Where(f => string.Equals(Path.GetFileName(f), name, StringComparison.OrdinalIgnoreCase)
+                        && !SaveGuard.IsInPerGameFolder(_statesDir, f))
             .OrderByDescending(File.GetLastWriteTimeUtc)
             .FirstOrDefault();
     }
