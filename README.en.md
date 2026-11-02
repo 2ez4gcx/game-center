@@ -64,7 +64,7 @@ Game Center **does not replace** RetroArch; it is a simple layer on top. RetroAr
 
 **Adding games:** copy them into the `Games` folder; everything in one place is fine. Game Center recognizes the console from the file content and shows new games after a few seconds.
 
-- `.cue` + `.bin` appear once; multi-disc games (including loose `.chd`, `.iso` named `(Disc 1)`, `(Disc 2)`) are merged and discs can be changed while playing.
+- `.cue` + `.bin` appear once; multi-disc games (including loose `.chd`, `.iso` named `(Disc 1)`, `(Disc 2)`, or one folder per disc such as `The Legend of Dragoon (Disc 1)/`, `(Disc 2)/`) are merged, discs can be changed while playing, and all discs share one memory card.
 - PS1 vs PS2 discs are told apart by their content (`SYSTEM.CNF`), no need to sort them into folders.
 - `.bin` / `.rom` without `.cue`: detected as a PS1 / PS2 disc or a cartridge ROM (NES, Game Boy, GBA, Mega Drive, Master System...) from its header.
 - `.zip` with several ROMs: each ROM becomes a game.

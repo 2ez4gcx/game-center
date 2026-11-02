@@ -65,7 +65,58 @@ public sealed class GameScanner
             try { ScanDirectory(dir, result); }
             catch (Exception ex) { Log.Error($"Lỗi khi quét {dir}", ex); }
         }
+        MergeDiscFolders(result);
+
+        // Sinh playlist .m3u cho game nhiều đĩa (sau khi đã có tên cuối cùng); .m3u người dùng tự tạo thì giữ nguyên.
+        // Tên .m3u theo file đĩa 1 bỏ phần "(Disc N)": RetroArch đặt tên thẻ nhớ theo file chạy → mọi đĩa dùng chung một thẻ nhớ.
+        foreach (var g in result.Where(g => g.Platform != null && g.Discs.Count >= 2 && Ext(g.LaunchFile) != ".m3u"))
+        {
+            try { g.LaunchFile = WriteGenerated(g.Platform!, NameCleaner.StripDisc(Path.GetFileNameWithoutExtension(g.SourceFile)), ".m3u", string.Join("\r\n", g.Discs) + "\r\n", g.SourceFile); }
+            catch (Exception ex) { Log.Error($"Không ghi được playlist cho {g.SourceFile}", ex); }
+        }
         return result;
+    }
+
+    /// <summary>
+    /// Game nhiều đĩa để mỗi đĩa một thư mục, file bên trong có thể không ghi số đĩa:
+    /// "Tên (Disc 1) (VN)/LOD.cue", "Tên (Disc 2) (VN)/LOD.cue"... hoặc "Tên/Disc 1/", "Tên/Disc 2/".
+    /// Các thư mục anh em cùng tên (bỏ phần số đĩa) → ghép thành một game: đổi đĩa được và dùng chung thẻ nhớ.
+    /// </summary>
+    private void MergeDiscFolders(List<ScannedGame> games)
+    {
+        // Tên mang số đĩa: tên file nếu có, không thì tên thư mục chứa
+        static string? DiscName(ScannedGame g)
+        {
+            var file = Path.GetFileNameWithoutExtension(g.SourceFile);
+            if (NameCleaner.DiscNumberOf(file) != null) return file;
+            var folder = Path.GetFileName(g.FolderPath);
+            return NameCleaner.DiscNumberOf(folder) != null ? folder : null;
+        }
+        var groups = games
+            .Where(g => g.Status == ScanStatus.Ok && g.Discs.Count == 0 && _catalog.IsDiscPlatform(g.Platform)
+                        && !g.SourceFile.Contains(".zip#", StringComparison.OrdinalIgnoreCase) && DiscName(g) != null)
+            .GroupBy(g => g.Platform + "|" + Path.GetDirectoryName(g.FolderPath) + "|" + NameCleaner.StripDisc(DiscName(g)!), StringComparer.OrdinalIgnoreCase)
+            // Chỉ ghép khi các đĩa nằm ở thư mục khác nhau (cùng thư mục đã ghép ở MergeLooseDiscs) và không trùng số đĩa
+            .Where(grp => grp.Count() >= 2
+                          && grp.Select(g => g.FolderPath).Distinct(StringComparer.OrdinalIgnoreCase).Count() == grp.Count()
+                          && grp.Select(g => NameCleaner.DiscNumberOf(DiscName(g)!)).Distinct().Count() == grp.Count())
+            .ToList();
+        foreach (var grp in groups)
+        {
+            var discs = grp.OrderBy(g => NameCleaner.DiscNumberOf(DiscName(g)!)).ToList();
+            var name = NameCleaner.StripDisc(DiscName(discs[0])!);
+            // "Tên/Disc 1/": tên game là thư mục cha
+            var parent = Path.GetDirectoryName(discs[0].FolderPath)!;
+            if (name.Length == 0 && !string.Equals(Path.GetFullPath(parent), _gamesDir, StringComparison.OrdinalIgnoreCase))
+                name = Path.GetFileName(parent);
+            if (name.Length == 0) name = NameCleaner.StripDisc(Path.GetFileNameWithoutExtension(discs[0].SourceFile));
+
+            var merged = NewGame(discs[0].SourceFile, discs[0].Platform, name, discs.Sum(d => d.FileSize));
+            merged.LaunchFile = discs[0].LaunchFile;
+            merged.Discs.AddRange(discs.Select(d => d.LaunchFile));
+            games.RemoveAll(discs.Contains);
+            games.Add(merged);
+        }
     }
 
     private static IEnumerable<string> EnumerateDirs(string root)
@@ -250,10 +301,7 @@ public sealed class GameScanner
             dirGames[0].Title = NameCleaner.Clean(Path.GetFileName(dir));
         }
 
-        // Sinh playlist .m3u cho game nhiều đĩa (sau khi đã có tên cuối cùng); .m3u người dùng tự tạo thì giữ nguyên
-        foreach (var g in dirGames.Where(g => g.Platform != null && g.Discs.Count >= 2 && Ext(g.LaunchFile) != ".m3u"))
-            g.LaunchFile = WriteGenerated(g.Platform!, NameCleaner.StripDisc(Path.GetFileNameWithoutExtension(g.SourceFile)), ".m3u", string.Join("\r\n", g.Discs) + "\r\n", g.SourceFile);
-
+        // Playlist .m3u cho game nhiều đĩa được sinh sau khi quét hết (Scan), vì đĩa có thể nằm ở các thư mục khác nhau
         result.AddRange(dirGames);
     }
 

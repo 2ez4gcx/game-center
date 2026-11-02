@@ -116,6 +116,7 @@ Kết luận: **ROM băng trong zip → chạy thẳng; game đĩa trong file n�
 | D4 | Nhiều track `Tên (Track 1).bin`, `(Track 2).bin`... mất `.cue` | sinh `.cue` tạm: track 1 dữ liệu, các track sau AUDIO (`INDEX 00 00:00:00`, `INDEX 01 00:02:00` theo Redump) — trước đây mỗi track hiện thành một game lỗi | 🆕 |
 | D5 | Nhiều đĩa `.cue` `(Disc 1)`, `(Disc 2)` | ✅ sinh `.m3u`; nay ghép theo **từng hệ máy** | ✅ / 🆕 |
 | D6 | Nhiều đĩa nằm rời dạng `.chd` / `.pbp` / `.iso` / `.bin` lẻ | ghép thành một game + `.m3u` để đổi đĩa (trước đây thành nhiều game riêng, không đổi đĩa được) | 🆕 |
+| D6b | Mỗi đĩa một thư mục, file bên trong không ghi số đĩa: `The Legend of Dragoon (Disc 1) (VN)/LOD.cue`, `(Disc 2) (VN)/LOD.cue`... hoặc `Tên/CD1/`, `Tên/CD2/` | các thư mục anh em cùng tên (bỏ số đĩa) ghép thành một game. Trước đây mỗi đĩa là một game riêng **và một thẻ nhớ riêng**, nên đĩa 2 không thấy save của đĩa 1. `.m3u` đặt tên theo file đĩa 1 (`LOD.m3u`) để giữ thẻ nhớ đĩa 1 đã chơi | 🆕 |
 | D7 | `.iso` PS2 (DVD) | đọc `SYSTEM.CNF` | 🆕 |
 | D8 | `.iso` PS1 (2048 byte, mất dữ liệu Mode 2) | báo "Beetle không mở được, dùng .bin/.cue hoặc .chd" | 🆕 |
 | D9 | `.iso` PSP / máy khác | báo chưa hỗ trợ | 🆕 |

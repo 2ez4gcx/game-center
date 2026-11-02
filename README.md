@@ -66,7 +66,7 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 
 **Thêm game:** chép vào thư mục `Games\`, để chung một chỗ cũng được. Game Center tự nhận ra hệ máy theo nội dung file và tự hiện game mới sau vài giây.
 
-- `.cue` + `.bin` hiện một lần; game nhiều đĩa (kể cả `.chd`, `.iso` để rời `(Disc 1)`, `(Disc 2)`) tự ghép và đổi đĩa được khi đang chơi.
+- `.cue` + `.bin` hiện một lần; game nhiều đĩa (kể cả `.chd`, `.iso` để rời `(Disc 1)`, `(Disc 2)`, hoặc mỗi đĩa một thư mục như `The Legend of Dragoon (Disc 1)/`, `(Disc 2)/`) tự ghép, đổi đĩa được khi đang chơi và dùng chung một thẻ nhớ.
 - Đĩa PS1 hay PS2 được nhận theo nội dung đĩa (file `SYSTEM.CNF`), không cần để đúng thư mục.
 - `.bin` / `.rom` không có `.cue`: nhận đĩa PS1 / PS2 hoặc ROM băng (NES, Game Boy, GBA, Mega Drive, Master System...) theo header.
 - `.zip` nhiều ROM: mỗi ROM thành một game.

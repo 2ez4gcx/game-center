@@ -365,6 +365,67 @@ public class Ps2ScanTests
     }
 }
 
+/// <summary>Game nhiều đĩa (ví dụ The Legend of Dragoon, 4 đĩa PS1) theo các cách sắp xếp hay gặp.</summary>
+public class MultiDiscLayoutTests
+{
+    private static void Disc(TestEnv env, string folder, string name)
+    {
+        env.File($"{folder}/{name}.bin", TestEnv.Ps1Disc());
+        env.Text($"{folder}/{name}.cue", $"FILE \"{name}.bin\" BINARY\n  TRACK 01 MODE2/2352\n    INDEX 01 00:00:00\n");
+    }
+
+    [Fact]
+    public void Redump_AllDiscsInOneFolder()
+    {
+        using var env = new TestEnv();
+        for (int n = 1; n <= 4; n++) Disc(env, "PS1/Legend of Dragoon", $"Legend of Dragoon, The (USA) (Disc {n})");
+        var db = new GameDatabase(env.Paths.DatabaseFile);
+        db.Initialize(env.Catalog);
+        db.ApplyScan(env.Scan());
+
+        var g = Assert.Single(db.GetGames());
+        Assert.Equal("Legend of Dragoon", g.Title);
+        Assert.Equal(4, g.DiscCount);
+        Assert.Equal("Legend of Dragoon, The (USA).m3u", Path.GetFileName(g.LaunchFile));
+    }
+
+    [Fact]
+    public void OneFolderPerDisc_FilesWithoutDiscNumber()
+    {
+        using var env = new TestEnv();
+        // Bản Việt hóa hay chia mỗi đĩa một thư mục, file bên trong cùng tên
+        for (int n = 1; n <= 4; n++) Disc(env, $"PS1/The Legend of Dragoon (Disc {n}) (VN)", "LOD");
+        env.File("PS1/The Legend of Dragoon (Disc 1) (VN)/huong dan.txt");
+
+        var g = Assert.Single(env.Scan());
+        Assert.Equal("PS1", g.Platform);
+        Assert.Equal("The Legend of Dragoon", g.Title);
+        Assert.Equal(4, g.Discs.Count);
+        Assert.Contains("(Disc 1)", g.SourceFile);
+        // Mọi đĩa chạy qua một playlist → đổi đĩa được, dùng chung thẻ nhớ "LOD.srm" (giữ save của đĩa 1 nếu đã chơi trước đó)
+        Assert.Equal("LOD.m3u", Path.GetFileName(g.LaunchFile));
+        var lines = File.ReadAllLines(g.LaunchFile);
+        Assert.Equal(4, lines.Length);
+        Assert.Contains("(Disc 4) (VN)", lines[3]);
+    }
+
+    [Fact]
+    public void GameFolder_WithDiscSubfolders()
+    {
+        using var env = new TestEnv();
+        Disc(env, "Legend of Dragoon/CD1", "lod1");
+        Disc(env, "Legend of Dragoon/CD2", "lod2");
+        // Chỉ có đĩa 1 của game khác: không ghép nhầm
+        Disc(env, "Vagrant Story (Disc 1)", "vs");
+
+        var games = env.Scan();
+        Assert.Equal(2, games.Count);
+        var lod = games.Single(g => g.Title == "Legend of Dragoon");
+        Assert.Equal(2, lod.Discs.Count);
+        Assert.Equal(0, games.Single(g => g.Title == "Vagrant Story").Discs.Count);
+    }
+}
+
 public class ArchiveAndFormatTests
 {
     private static void Zip(string path, params (string Name, byte[] Data)[] entries)
