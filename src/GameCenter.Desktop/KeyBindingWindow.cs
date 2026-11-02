@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using GameCenter.Core.Config;
 using GameCenter.Core.Emulation;
+using GameCenter.Core.Localization;
 using GameCenter.Core.Util;
 
 namespace GameCenter.Desktop;
@@ -27,7 +28,7 @@ public sealed class KeyBindingWindow : Window
 
     public KeyBindingWindow()
     {
-        Title = "Thiết lập phím";
+        Title = Loc.T("keys.title");
         Width = 1040;
         SizeToContent = SizeToContent.Height;
         MaxHeight = 900;
@@ -36,12 +37,12 @@ public sealed class KeyBindingWindow : Window
         _map = KeyboardLayout.Resolve(App.Settings.KeyBindings);
 
         var root = new StackPanel { Margin = new Thickness(32, 26, 32, 26) };
-        root.Children.Add(Dialogs.Heading("⌨  Thiết lập phím"));
-        root.Children.Add(Dialogs.Para("Bấm vào ô phím rồi nhấn phím bạn muốn dùng. Esc (thoát game), F1 (menu), F2 / F4 (lưu / tải nhanh) là phím hệ thống, không đổi được.", 19));
+        root.Children.Add(Dialogs.Heading(Loc.T("main.setup_keys")));
+        root.Children.Add(Dialogs.Para(Loc.T("keys.text"), 19));
 
         var cols = new Grid { Margin = new Thickness(0, 8, 0, 0), ColumnDefinitions = new ColumnDefinitions("*,24,*") };
-        var left = Group("TAY TRÁI", LeftHand);
-        var right = Group("TAY PHẢI", RightHand);
+        var left = Group(Loc.T("keys.left_hand"), LeftHand);
+        var right = Group(Loc.T("keys.right_hand"), RightHand);
         Grid.SetColumn(right, 2);
         cols.Children.Add(left);
         cols.Children.Add(right);
@@ -51,12 +52,12 @@ public sealed class KeyBindingWindow : Window
         root.Children.Add(_status);
 
         var buttons = new DockPanel { Margin = new Thickness(0, 12, 0, 0) };
-        var reset = Dialogs.Button("↺  Khôi phục mặc định", (_, _) => ResetDefaults());
+        var reset = Dialogs.Button(Loc.T("keys.reset"), (_, _) => ResetDefaults());
         DockPanel.SetDock(reset, Dock.Left);
         buttons.Children.Add(reset);
         var right2 = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        right2.Children.Add(Dialogs.Button("Lưu", async (_, _) => await Save(), primary: true));
-        right2.Children.Add(Dialogs.Button("Hủy", (_, _) => Close()));
+        right2.Children.Add(Dialogs.Button(Loc.T("dialog.save"), async (_, _) => await Save(), primary: true));
+        right2.Children.Add(Dialogs.Button(Loc.T("dialog.cancel"), (_, _) => Close()));
         buttons.Children.Add(right2);
         root.Children.Add(buttons);
 
@@ -103,7 +104,7 @@ public sealed class KeyBindingWindow : Window
         foreach (var (id, cap) in _caps)
         {
             bool listening = id == _listening;
-            cap.Content = listening ? "Bấm phím…" : KeyboardLayout.DisplayName(_map[id]);
+            cap.Content = listening ? Loc.T("keys.press") : KeyboardLayout.DisplayName(_map[id]);
             cap.Background = listening ? Dialogs.Res("Play") : new SolidColorBrush(Color.FromArgb(0x66, 0x1A, 0x2A, 0x48));
             cap.Foreground = listening ? Dialogs.Res("AccentFg") : Dialogs.Res("Fg");
         }
@@ -112,7 +113,7 @@ public sealed class KeyBindingWindow : Window
     private void Listen(string id)
     {
         _listening = id;
-        _status.Text = $"Nhấn phím cho \"{Label(id)}\"  (Esc để hủy)";
+        _status.Text = Loc.T("keys.listening", Label(id));
         Refresh();
     }
 
@@ -127,11 +128,11 @@ public sealed class KeyBindingWindow : Window
         var id = _listening;
         _listening = null;
 
-        if (e.Key == Key.Escape) { _status.Text = "Đã hủy."; Refresh(); return; }
+        if (e.Key == Key.Escape) { _status.Text = Loc.T("keys.cancelled"); Refresh(); return; }
         var ra = ToRetroArch(e.Key);
         if (ra == null || KeyboardLayout.Reserved.Contains(ra))
         {
-            _status.Text = $"Phím {e.Key} không dùng được, hãy chọn phím khác.";
+            _status.Text = Loc.T("keys.unusable", e.Key);
             Refresh();
             return;
         }
@@ -141,7 +142,7 @@ public sealed class KeyBindingWindow : Window
         if (other != null)
         {
             _map[other] = _map[id];
-            _status.Text = $"Đã đổi phím giữa \"{Label(id)}\" và \"{Label(other)}\".";
+            _status.Text = Loc.T("keys.swapped", Label(id), Label(other));
         }
         else _status.Text = $"\"{Label(id)}\" = {KeyboardLayout.DisplayName(ra)}";
         _map[id] = ra;
@@ -154,7 +155,7 @@ public sealed class KeyBindingWindow : Window
     {
         foreach (var (k, v) in KeyboardLayout.Defaults()) _map[k] = v;
         _listening = null;
-        _status.Text = "Đã khôi phục phím mặc định (bấm Lưu để áp dụng).";
+        _status.Text = Loc.T("keys.reset_done");
         Refresh();
     }
 
@@ -169,7 +170,7 @@ public sealed class KeyBindingWindow : Window
         catch (Exception ex)
         {
             Log.Error("Lưu phím lỗi", ex);
-            await Dialogs.Info(this, "Không lưu được", ex.Message);
+            await Dialogs.Info(this, Loc.T("settings.save_error_title"), ex.Message);
             return;
         }
         Close();

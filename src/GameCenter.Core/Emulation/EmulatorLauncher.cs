@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using GameCenter.Core.Config;
 using GameCenter.Core.Data;
+using GameCenter.Core.Localization;
 using GameCenter.Core.Scanning;
 using GameCenter.Core.Util;
 
@@ -37,20 +38,19 @@ public sealed class EmulatorLauncher
     public LaunchPlan Plan(GameRecord game)
     {
         if (game.ScanStatus == ScanStatus.BrokenCue)
-            return new(LaunchProblem.BrokenCue,
-                $"Game này bị thiếu file nên không chạy được.\n\n{game.ScanMessage}\n\nHãy kiểm tra lại thư mục game.");
+            return new(LaunchProblem.BrokenCue, Loc.T("launch.broken", game.ScanMessage));
         if (!File.Exists(GameScanner.PhysicalPath(game.LaunchFile)))
-            return new(LaunchProblem.GameFileMissing, "Không tìm thấy file game. Có thể game đã bị xóa hoặc di chuyển. Hãy bấm \"Quét game mới\".");
+            return new(LaunchProblem.GameFileMissing, Loc.T("launch.file_missing"));
 
         var platform = _catalog.Get(game.Platform);
         if (platform == null)
-            return new(LaunchProblem.UnknownPlatform, "Chưa biết game này thuộc hệ máy nào. Hãy chọn hệ máy cho game trước.");
+            return new(LaunchProblem.UnknownPlatform, Loc.T("launch.unknown_platform"));
 
         // DuckStation do người dùng tự cài (không đóng gói, mục 10.3)
         if (platform.Name == "PS1" && _settings.UseUserDuckStation)
         {
             if (string.IsNullOrWhiteSpace(_settings.DuckStationPath) || !File.Exists(_settings.DuckStationPath))
-                return new(LaunchProblem.DuckStationMissing, "Không tìm thấy DuckStation bạn đã chọn. Hãy kiểm tra lại trong Cài đặt.");
+                return new(LaunchProblem.DuckStationMissing, Loc.T("launch.duck_missing"));
             var dsi = new ProcessStartInfo(_settings.DuckStationPath) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(_settings.DuckStationPath)! };
             if (_settings.Fullscreen) dsi.ArgumentList.Add("-fullscreen");
             dsi.ArgumentList.Add("--");
@@ -59,18 +59,25 @@ public sealed class EmulatorLauncher
         }
 
         if (!File.Exists(_paths.RetroArchExe))
-            return new(LaunchProblem.RetroArchMissing, "Thiếu RetroArch trong thư mục cài đặt. Hãy cài lại Game Center.");
+            return new(LaunchProblem.RetroArchMissing, Loc.T("launch.retroarch_missing"));
 
         var core = _paths.CorePath(platform.Core);
         if (!File.Exists(core))
-            return new(LaunchProblem.CoreMissing, $"Thiếu thành phần giả lập cho {platform.DisplayName} ({Path.GetFileName(core)}). Hãy cài lại Game Center.");
+            return new(LaunchProblem.CoreMissing, Loc.T("launch.core_missing", platform.DisplayName, Path.GetFileName(core)));
 
-        var bios = BiosChecker.Check(platform, _paths.BiosDir);
-        if (bios == BiosState.Missing)
-            return new(LaunchProblem.BiosMissing,
-                "Game này cần một file hệ thống BIOS. Hãy thêm BIOS mà bạn tự sao lưu hợp pháp vào thư mục BIOS, sau đó thử lại.");
+        try { BiosChecker.Prepare(platform, _paths.BiosDir); }
+        catch (Exception ex) { Log.Error($"Không chuẩn bị được BIOS {platform.Name}", ex); }
+        if (BiosChecker.Check(platform, _paths.BiosDir) == BiosState.Missing)
+            return new(LaunchProblem.BiosMissing, BiosMissingMessage(platform));
 
         return new(LaunchProblem.None, "", BuildRetroArchStartInfo(core, game.LaunchFile));
+    }
+
+    /// <summary>Hướng dẫn riêng từng hệ máy nếu có (khóa "launch.bios_missing.&lt;hệ máy&gt;"), không thì câu chung.</summary>
+    public static string BiosMissingMessage(PlatformDefinition platform)
+    {
+        var key = "launch.bios_missing." + platform.Name;
+        return Loc.T(Loc.Current.Has(key) ? key : "launch.bios_missing");
     }
 
     /// <summary>Dùng ArgumentList (từng tham số riêng) để an toàn với dấu cách và tiếng Việt.</summary>

@@ -38,4 +38,17 @@ public static partial class NameCleaner
         var m = DiscNumber().Match(name);
         return m.Success ? int.Parse(m.Groups[2].Value) : null;
     }
+
+    [GeneratedRegex(@"\s*\(\s*track\s*0*(\d+)\s*\)", RegexOptions.IgnoreCase)]
+    private static partial Regex TrackSuffix();
+
+    /// <summary>Số track trong tên file kiểu Redump "Tên (Track 02)", hoặc null.</summary>
+    public static int? TrackNumberOf(string name)
+    {
+        var m = TrackSuffix().Match(name);
+        return m.Success ? int.Parse(m.Groups[1].Value) : null;
+    }
+
+    /// <summary>Tên file đã bỏ phần "(Track N)".</summary>
+    public static string StripTrack(string name) => TrackSuffix().Replace(name, "").Trim();
 }

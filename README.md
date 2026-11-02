@@ -1,6 +1,8 @@
 # Game Center
 
-Launcher **miễn phí** cho game retro trên **Windows, macOS và Linux**, thiết kế cho người lớn tuổi: chữ lớn, nút to, điều khiển bằng tay cầm hoặc bàn phím. Mọi hệ máy chạy qua RetroArch.
+**Tiếng Việt** · [English](README.en.md)
+
+Launcher **miễn phí** cho game retro trên **Windows, macOS và Linux**, thiết kế cho người lớn tuổi: chữ lớn, nút to, điều khiển bằng tay cầm hoặc bàn phím. Mọi hệ máy chạy qua RetroArch. Giao diện **tiếng Việt và tiếng Anh** (bấm nút 🌐 ở góc trái để đổi).
 
 ```text
 Cài đặt → Next → Finish → Chép game → Chơi
@@ -33,10 +35,14 @@ Tải ở mục [Releases](https://github.com/2ez4gcx/game-center/releases). M�
 | SNES | `.sfc`, `.smc`, `.zip` | Snes9x | Phi thương mại |
 | Game Boy / Color | `.gb`, `.gbc`, `.zip` | Gambatte | GPLv2 |
 | GBA | `.gba`, `.zip` | mGBA | MPL 2.0 |
-| Mega Drive | `.md`, `.gen`, `.bin`, `.zip` | Genesis Plus GX | Phi thương mại |
-| PS1 | `.cue`, `.bin`, `.pbp`, `.chd`, `.m3u` | Beetle PSX HW | GPLv2 |
+| Master System / Game Gear | `.sms`, `.gg`, `.zip` | Genesis Plus GX | Phi thương mại |
+| Mega Drive | `.md`, `.gen`, `.smd`, `.bin`, `.zip` | Genesis Plus GX | Phi thương mại |
+| PS1 | `.cue`, `.bin`, `.pbp`, `.chd`, `.ccd`, `.m3u` | Beetle PSX HW | GPLv2 |
+| **PS2** | `.iso`, `.chd`, `.cso`, `.zso`, `.cue`/`.bin`, `.m3u` | LRPS2 | GPLv3 |
 
 PS1 chơi được ngay không cần BIOS (OpenBIOS). Thêm BIOS bạn tự sao lưu vào thư mục `BIOS\` để tương thích tốt hơn.
+
+**PS2 bắt buộc có BIOS** sao lưu (dump) từ máy PS2 của bạn: chép file BIOS (thường là `SCPH-xxxxx.bin`, 4 MB, tên gì cũng được) thẳng vào thư mục `BIOS\`, Game Center tự chuyển vào đúng chỗ core cần (`BIOS\pcsx2\bios\`). PS2 cần máy tính khá mạnh (nên có CPU 4 nhân và card đồ họa rời hoặc đồ họa tích hợp đời mới) và tay cầm có cần analog. Bản PS2 trên Mac chip Apple chưa được kiểm tra.
 
 ## Game Center khác RetroArch thế nào?
 
@@ -45,9 +51,9 @@ Game Center **không thay thế** RetroArch mà là lớp giao diện đơn gi�
 | | RetroArch dùng một mình | Game Center |
 |---|---|---|
 | **Vai trò** | Trình giả lập đa hệ máy, chạy game | Launcher: quản lý game, gọi RetroArch để chơi |
-| **Cài đặt** | Tự tải từng core, tự cấu hình thư mục, BIOS, tay cầm | Bộ cài có sẵn RetroArch, 6 core và cấu hình |
-| **Thêm game** | Tự quét hoặc tạo playlist trong menu, phải chọn đúng core | Chép vào `Games`, tự nhận hệ máy và tự hiện lên |
-| **PS1** | Tự xử lý `.cue`, tự viết `.m3u` cho game nhiều đĩa | Tự ghép đĩa, tự tạo `.cue` cho `.bin` lẻ, tự tạo `.m3u` |
+| **Cài đặt** | Tự tải từng core, tự cấu hình thư mục, BIOS, tay cầm | Bộ cài có sẵn RetroArch, 7 core và cấu hình |
+| **Thêm game** | Tự quét hoặc tạo playlist trong menu, phải chọn đúng core | Chép vào `Games`, tự nhận hệ máy theo nội dung file và tự hiện lên |
+| **PS1 / PS2** | Tự xử lý `.cue`, tự viết `.m3u` cho game nhiều đĩa, tự đặt BIOS PS2 đúng thư mục | Tự phân biệt đĩa PS1 / PS2, tự ghép đĩa, tự tạo `.cue` cho `.bin` lẻ, tự tạo `.m3u`, tự đặt BIOS PS2 |
 | **Giao diện** | Menu nhiều tầng, chữ nhỏ, hàng trăm tùy chọn | Một màn hình, chữ lớn, nút "Chơi" |
 | **Điều khiển** | Phải tự gán phím, phím tắt mặc định dễ bấm nhầm (tua nhanh, tạm dừng…) | Phím WASD/IJKL có sẵn, đã tắt các phím tắt dễ nhầm, gán lại bằng cửa sổ đơn giản |
 | **Thoát game** | Phải biết tổ hợp phím hoặc vào menu | Luôn hiện hướng dẫn trên màn hình; phải bấm 2 lần mới thoát để tránh lỡ tay |
@@ -60,10 +66,12 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 
 **Thêm game:** chép vào thư mục `Games\`, để chung một chỗ cũng được. Game Center tự nhận ra hệ máy theo nội dung file và tự hiện game mới sau vài giây.
 
-- `.cue` + `.bin` PS1 hiện một lần; game nhiều đĩa tự ghép và đổi đĩa được khi đang chơi.
-- `.bin` không có `.cue`: nhận đĩa PS1 hoặc ROM Mega Drive theo nội dung.
+- `.cue` + `.bin` hiện một lần; game nhiều đĩa (kể cả `.chd`, `.iso` để rời `(Disc 1)`, `(Disc 2)`) tự ghép và đổi đĩa được khi đang chơi.
+- Đĩa PS1 hay PS2 được nhận theo nội dung đĩa (file `SYSTEM.CNF`), không cần để đúng thư mục.
+- `.bin` / `.rom` không có `.cue`: nhận đĩa PS1 / PS2 hoặc ROM băng (NES, Game Boy, GBA, Mega Drive, Master System...) theo header.
 - `.zip` nhiều ROM: mỗi ROM thành một game.
-- File không nhận ra được nằm ở mục **Chưa nhận ra**, bấm để chọn hệ máy.
+- File không chạy được (`.7z`, `.rar`, file nén nhiều phần, game đĩa trong `.zip`, game máy chưa hỗ trợ...) nằm ở mục **Chưa nhận ra** kèm hướng dẫn cách xử lý. Chi tiết mọi trường hợp: [docs/nhan-dien-file-nen.md](docs/nhan-dien-file-nen.md).
+- BIOS lỡ chép vào `Games\` được tự chuyển sang thư mục `BIOS\`.
 
 **Điều khiển:** chọn **Tay cầm** hoặc **Bàn phím** ở góc trái; bàn phím luôn dùng được song song với tay cầm.
 
@@ -81,7 +89,7 @@ Nói ngắn gọn: **RetroArch** là "cỗ máy" chạy game, mạnh và linh ho
 |---|---|
 | ![Chế độ bàn phím](docs/anh/che-do-ban-phim.png) | ![Thiết lập phím](docs/anh/thiet-lap-phim.png) |
 
-**Thoát game:** bấm **START + SELECT** trên tay cầm, hoặc **Esc** trên bàn phím, **2 lần liên tiếp**. Lần đầu chỉ hiện "Nhấn lại để thoát...", để lỡ chạm một lần không mất game đang chơi. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh. Menu và thông báo của giả lập hiển thị bằng tiếng Việt.
+**Thoát game:** bấm **START + SELECT** trên tay cầm, hoặc **Esc** trên bàn phím, **2 lần liên tiếp**. Lần đầu chỉ hiện "Nhấn lại để thoát...", để lỡ chạm một lần không mất game đang chơi. **F1** mở menu giả lập (đổi đĩa…), **F2 / F4** lưu / tải nhanh. Menu và thông báo của giả lập hiển thị cùng ngôn ngữ với Game Center.
 
 **Save game:**
 - Save trong game (memory card, save trong băng) luôn được giữ, tự ghi xuống ổ mỗi 10 giây.
@@ -129,6 +137,7 @@ Chạy với thư mục dữ liệu riêng khi kiểm thử: đặt biến môi 
 | Thư mục | Nội dung |
 |---|---|
 | `src/GameCenter.Core` | Quét và nhận diện game, SQLite, sinh `retroarch.cfg`, sơ đồ phím, save state, khởi chạy RetroArch |
+| `src/GameCenter.Core/Localization/Lang` | Chuỗi giao diện `vi.json`, `en.json`. Thêm ngôn ngữ: thêm file `<mã>.json` cùng khóa (kiểm thử tự kiểm tra thiếu khóa) |
 | `src/GameCenter.Desktop` | Giao diện Avalonia (Windows / macOS / Linux), đọc tay cầm bằng SDL2 |
 | `tests/GameCenter.Tests` | Kiểm thử |
 | `Defaults/` | `platforms.json` (core từng hệ máy), `retroarch-base.cfg` |
@@ -157,7 +166,7 @@ Thiết kế chi tiết: [GAME_CENTER_IMPLEMENTATION.md](GAME_CENTER_IMPLEMENTAT
 
 ## Giấy phép
 
-Game Center miễn phí, không quảng cáo, không tính năng trả phí. RetroArch và các core giữ giấy phép riêng (xem `Licenses/`). Snes9x và Genesis Plus GX chỉ cho phép phân phối phi thương mại. Game Center không phải sản phẩm chính thức của Sony, Nintendo hay Sega.
+Game Center miễn phí, không quảng cáo, không tính năng trả phí. RetroArch và các core giữ giấy phép riêng (xem `Licenses/`). Snes9x và Genesis Plus GX chỉ cho phép phân phối phi thương mại. Game Center không phải sản phẩm chính thức của Sony, Nintendo hay Sega. Không kèm game hay BIOS.
 
 ---
 

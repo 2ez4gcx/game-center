@@ -1,7 +1,15 @@
+using GameCenter.Core.Localization;
+
 namespace GameCenter.Core.Config;
 
 /// <summary>Một nút của tay cầm ảo RetroPad (RetroArch) và phím bàn phím được gán.</summary>
-public sealed record PadButtonInfo(string Id, string Label, string Hint, string DefaultKey);
+public sealed record PadButtonInfo(string Id, string DefaultKey)
+{
+    /// <summary>Tên nút theo ngôn ngữ giao diện (khóa "pad.&lt;id&gt;").</summary>
+    public string Label => Loc.T("pad." + Id);
+    /// <summary>Gợi ý vị trí nút (khóa "pad.&lt;id&gt;.hint").</summary>
+    public string Hint => Loc.T("pad." + Id + ".hint");
+}
 
 /// <summary>
 /// Sơ đồ bàn phím mặc định: tay trái WASD + Q/E (L1/L2), tay phải IJKL + U/O (R1/R2),
@@ -12,20 +20,20 @@ public static class KeyboardLayout
 {
     public static readonly IReadOnlyList<PadButtonInfo> Buttons = new PadButtonInfo[]
     {
-        new("up",     "Lên",        "D-pad ↑",               "w"),
-        new("down",   "Xuống",      "D-pad ↓",               "s"),
-        new("left",   "Trái",       "D-pad ←",               "a"),
-        new("right",  "Phải",       "D-pad →",               "d"),
-        new("x",      "Nút X",      "nút trên · PS △",       "i"),
-        new("y",      "Nút Y",      "nút trái · PS □",       "j"),
-        new("b",      "Nút B",      "nút dưới · PS ✕",       "k"),
-        new("a",      "Nút A",      "nút phải · PS ○",       "l"),
-        new("l",      "L1",         "vai trái",              "q"),
-        new("l2",     "L2",         "cò trái",               "e"),
-        new("r",      "R1",         "vai phải",              "u"),
-        new("r2",     "R2",         "cò phải",               "o"),
-        new("start",  "START",      "bắt đầu / tạm dừng",    "enter"),
-        new("select", "SELECT",     "chọn",                  "space"),
+        new("up",     "w"),
+        new("down",   "s"),
+        new("left",   "a"),
+        new("right",  "d"),
+        new("x",      "i"),
+        new("y",      "j"),
+        new("b",      "k"),
+        new("a",      "l"),
+        new("l",      "q"),
+        new("l2",     "e"),
+        new("r",      "u"),
+        new("r2",     "o"),
+        new("start",  "enter"),
+        new("select", "space"),
     };
 
     /// <summary>Phím hệ thống, không cho gán vào nút game: Esc thoát, F1 menu, F2/F4 lưu/tải nhanh.</summary>
@@ -71,12 +79,7 @@ public static class KeyboardLayout
         "nul" or "" => "—",
         "enter" => "Enter",
         "space" => "Space",
-        "shift" => "Shift trái",
-        "rshift" => "Shift phải",
-        "ctrl" => "Ctrl trái",
-        "rctrl" => "Ctrl phải",
-        "alt" => "Alt trái",
-        "ralt" => "Alt phải",
+        "shift" or "rshift" or "ctrl" or "rctrl" or "alt" or "ralt" => Loc.T("key." + raKey),
         "tab" => "Tab",
         "backspace" => "Backspace",
         "up" => "↑",

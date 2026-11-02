@@ -37,35 +37,38 @@
 
                     <!-- Cách điều khiển -->
                     <StackPanel DockPanel.Dock="Bottom">
-                        <TextBlock Text="CÁCH ĐIỀU KHIỂN" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,8"/>
+                        <TextBlock Text="{local:T main.control_mode}" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,8"/>
                         <Border CornerRadius="13" Background="#80101A30" BorderBrush="{StaticResource Line}" BorderThickness="1.5">
                             <UniformGrid Columns="2">
                                 <RadioButton x:Name="ModeGamepad" Classes="segment" GroupName="mode" Tag="gamepad" IsCheckedChanged="Mode_Changed">
                                     <StackPanel>
                                         <TextBlock Text="🎮" FontSize="22" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Tay cầm" FontSize="16" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{local:T main.mode_gamepad}" FontSize="16" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </RadioButton>
                                 <RadioButton x:Name="ModeKeyboard" Classes="segment" GroupName="mode" Tag="keyboard" IsCheckedChanged="Mode_Changed">
                                     <StackPanel>
                                         <TextBlock Text="⌨" FontSize="22" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Bàn phím" FontSize="16" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{local:T main.mode_keyboard}" FontSize="16" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </RadioButton>
                             </UniformGrid>
                         </Border>
                         <StackPanel Orientation="Horizontal" Margin="8,10,0,0">
                             <Ellipse x:Name="PadDot" Width="10" Height="10" Fill="#607D8B" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="PadStatus" Text="Chưa thấy tay cầm" FontSize="15" Foreground="{StaticResource FgDim}" Margin="8,0,0,0"/>
+                            <TextBlock x:Name="PadStatus" FontSize="15" Foreground="{StaticResource FgDim}" Margin="8,0,0,0"/>
                         </StackPanel>
-                        <Button x:Name="ControlSetupButton" Classes="big" Content="⚙  Thiết lập nút" Margin="0,10,0,0"
+                        <Button x:Name="ControlSetupButton" Classes="big" Margin="0,10,0,0"
                                 HorizontalAlignment="Stretch" Click="ControlSetup_Click"/>
+                        <!-- Đổi ngôn ngữ: nút hiện tên ngôn ngữ kia (bằng chính ngôn ngữ đó) để ai cũng đọc được -->
+                        <Button x:Name="LanguageButton" Classes="big" FontSize="16" MinHeight="42" Padding="12,4" Margin="0,8,0,0"
+                                HorizontalAlignment="Stretch" Click="Language_Click" ToolTip.Tip="{local:T main.language_tip}"/>
                         <TextBlock x:Name="AuthorText" FontFamily="{StaticResource TechFont}" FontSize="12" Opacity="0.55"
                                    Foreground="{StaticResource FgDim}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
                     </StackPanel>
 
                     <!-- Điều hướng: LB/RB trên tay cầm -->
-                    <TextBlock DockPanel.Dock="Top" Text="THƯ VIỆN" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="{local:T main.library}" FontFamily="{StaticResource TechFont}" FontSize="14" Foreground="{StaticResource FgDim}" Margin="6,0,0,6"/>
                     <ScrollViewer VerticalScrollBarVisibility="Hidden" Margin="0,0,0,16">
                         <StackPanel x:Name="TabsPanel"/>
                     </ScrollViewer>
@@ -77,18 +80,18 @@
                 <!-- Thanh trên: tìm kiếm + nút -->
                 <DockPanel Grid.Row="0">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Button Classes="big" Content="⟳  Quét" Click="Scan_Click" ToolTip.Tip="Quét game mới"/>
-                        <Button Classes="big" Content="📂  Thư mục game" Click="OpenGamesFolder_Click"/>
-                        <Button Classes="big" Content="⚙" FontSize="24" Padding="12,4" Click="Settings_Click" ToolTip.Tip="Cài đặt"/>
-                        <Button Classes="big" Content="?" FontSize="24" Padding="14,4" Click="Help_Click" ToolTip.Tip="Trợ giúp"/>
+                        <Button Classes="big" Content="{local:T main.scan}" Click="Scan_Click" ToolTip.Tip="{local:T main.scan_tip}"/>
+                        <Button Classes="big" Content="{local:T main.games_folder}" Click="OpenGamesFolder_Click"/>
+                        <Button Classes="big" Content="⚙" FontSize="24" Padding="12,4" Click="Settings_Click" ToolTip.Tip="{local:T main.settings_tip}"/>
+                        <Button Classes="big" Content="?" FontSize="24" Padding="14,4" Click="Help_Click" ToolTip.Tip="{local:T main.help_tip}"/>
                     </StackPanel>
-                    <TextBox x:Name="SearchBox" Margin="0,6,12,6" Watermark="⌕   Tìm game…" TextChanged="SearchBox_TextChanged"/>
+                    <TextBox x:Name="SearchBox" Margin="0,6,12,6" Watermark="{local:T main.search}" TextChanged="SearchBox_TextChanged"/>
                 </DockPanel>
 
                 <!-- Tiêu đề mục -->
                 <DockPanel Grid.Row="1" Margin="4,18,4,10">
                     <TextBlock x:Name="StatusText" DockPanel.Dock="Right" VerticalAlignment="Bottom" FontFamily="{StaticResource TechFont}" FontSize="17" Foreground="{StaticResource FgDim}"/>
-                    <TextBlock x:Name="SectionTitle" Text="Tất cả" FontFamily="{StaticResource TechFont}" FontSize="34" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="SectionTitle" FontFamily="{StaticResource TechFont}" FontSize="34" FontWeight="SemiBold"/>
                 </DockPanel>
 
                 <!-- Danh sách game -->
@@ -122,9 +125,9 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Button Classes="big" Content="{Binding FavoriteIcon}" Foreground="{Binding FavoriteBrush}" FontSize="24" Padding="12,4"
-                                                    ToolTip.Tip="Yêu thích" Click="Favorite_Click" Focusable="False"/>
+                                                    ToolTip.Tip="{local:T main.favorite_tip}" Click="Favorite_Click" Focusable="False"/>
                                             <Button Classes="big" Content="⋯" FontSize="24" Padding="12,4"
-                                                    ToolTip.Tip="Thêm" Click="More_Click" Focusable="False"/>
+                                                    ToolTip.Tip="{local:T main.more_tip}" Click="More_Click" Focusable="False"/>
                                             <Button Classes="big play" Content="{Binding PlayLabel}" Click="Play_Click" Focusable="False"/>
                                         </StackPanel>
                                     </Grid>
@@ -137,11 +140,11 @@
                     <Border x:Name="EmptyPanel" Background="{StaticResource Panel}" BorderBrush="{StaticResource LineStrong}" BorderThickness="1.5" CornerRadius="18" Padding="40"
                             VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="False" BoxShadow="0 0 12 0 #7300E5FF">
                         <StackPanel MaxWidth="760">
-                            <TextBlock x:Name="EmptyTitle" Text="Chưa có game nào" FontFamily="{StaticResource TechFont}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Accent}" Margin="0,0,0,12"/>
+                            <TextBlock x:Name="EmptyTitle" FontFamily="{StaticResource TechFont}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource Accent}" Margin="0,0,0,12"/>
                             <TextBlock x:Name="EmptyText" FontSize="22" TextWrapping="Wrap" LineHeight="32"/>
                             <WrapPanel Margin="0,20,0,0">
-                                <Button Classes="big" Content="📂  Mở thư mục game" Click="OpenGamesFolder_Click"/>
-                                <Button Classes="big play" Content="⟳  Quét game mới" Click="Scan_Click"/>
+                                <Button Classes="big" Content="{local:T main.open_games_folder}" Click="OpenGamesFolder_Click"/>
+                                <Button Classes="big play" Content="{local:T main.scan_new}" Click="Scan_Click"/>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -152,8 +155,8 @@
                     <DockPanel>
                         <TextBlock x:Name="ControlHint" DockPanel.Dock="Right" FontSize="17" Foreground="{StaticResource FgDim}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="⏏  THOÁT GAME:" FontSize="22" FontWeight="Bold" Foreground="{StaticResource Accent2}"/>
-                            <TextBlock x:Name="ExitHint" Text="bấm START + SELECT 2 lần" FontSize="22" FontWeight="Bold" Margin="8,0,0,0"/>
+                            <TextBlock Text="{local:T main.exit_game_label}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource Accent2}"/>
+                            <TextBlock x:Name="ExitHint" FontSize="22" FontWeight="Bold" Margin="8,0,0,0"/>
                         </StackPanel>
                     </DockPanel>
                 </Border>

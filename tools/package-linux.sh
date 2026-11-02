@@ -16,7 +16,7 @@ APPDIR="$OUT/GameCenter.AppDir"
 APP="$APPDIR/usr/lib/gamecenter"
 EMU="$APP/Emulators/RetroArch"
 WORK="$OUT/work"
-CORES=(mednafen_psx_hw snes9x mgba genesis_plus_gx fceumm gambatte)
+CORES=(mednafen_psx_hw pcsx2 snes9x mgba genesis_plus_gx fceumm gambatte)
 
 rm -rf "$OUT"
 mkdir -p "$APP" "$WORK"
@@ -67,7 +67,8 @@ cat > "$APPDIR/gamecenter.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Game Center
-Comment=Launcher game retro miễn phí
+Comment=Free retro game launcher
+Comment[vi]=Launcher game retro miễn phí
 Exec=GameCenter
 Icon=gamecenter
 Categories=Game;Emulator;

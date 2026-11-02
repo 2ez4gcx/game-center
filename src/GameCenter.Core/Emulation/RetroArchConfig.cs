@@ -19,6 +19,28 @@ public static class RetroArchConfig
     public const string QuitComboStartSelect = "4";
     public const string MenuComboL3R3 = "2";
 
+    /// <summary>
+    /// Mã ngôn ngữ RetroArch (enum retro_language): 0 English, 1 日本語, 2 Français, 3 Español, 4 Deutsch,
+    /// 5 Italiano, 6 Nederlands, 7 Português (Brasil), 9 Русский, 10 한국어, 12 简体中文, 14 Polski, 15 Tiếng Việt.
+    /// Chưa chọn ngôn ngữ: tiếng Việt như các bản trước.
+    /// </summary>
+    public static string RetroArchLanguage(string? language) => language switch
+    {
+        null or "vi" => "15",
+        "ja" => "1",
+        "fr" => "2",
+        "es" => "3",
+        "de" => "4",
+        "it" => "5",
+        "nl" => "6",
+        "pt" => "7",
+        "ru" => "9",
+        "ko" => "10",
+        "zh" => "12",
+        "pl" => "14",
+        _ => "0",
+    };
+
     public static Dictionary<string, string> ManagedKeys(AppPaths paths, AppSettings settings, bool vulkanAvailable)
     {
         bool useVulkan = settings.Ps1Renderer switch
@@ -49,8 +71,8 @@ public static class RetroArchConfig
             ["input_exit_emulator"] = "escape",
             ["quit_press_twice"] = "true",
             ["confirm_quit"] = "false",
-            // Giao diện và thông báo của RetroArch bằng tiếng Việt (RETRO_LANGUAGE_VIETNAMESE = 15)
-            ["user_language"] = "15",
+            // Menu và thông báo của RetroArch cùng ngôn ngữ với Game Center
+            ["user_language"] = RetroArchLanguage(settings.Language),
             // Mở menu (đổi đĩa, cấu hình tay cầm): L3+R3 hoặc F1
             ["menu_toggle_gamepad_combo"] = MenuComboL3R3,
             ["input_menu_toggle"] = "f1",

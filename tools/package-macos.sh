@@ -26,7 +26,7 @@ APP="$OUT/Game Center.app"
 BIN="$APP/Contents/MacOS"
 EMU="$BIN/Emulators"
 WORK="$OUT/work-$ARCH"
-CORES=(mednafen_psx_hw snes9x mgba genesis_plus_gx fceumm gambatte)
+CORES=(mednafen_psx_hw pcsx2 snes9x mgba genesis_plus_gx fceumm gambatte)
 
 rm -rf "$APP" "$WORK"
 mkdir -p "$BIN" "$APP/Contents/Resources" "$WORK"
