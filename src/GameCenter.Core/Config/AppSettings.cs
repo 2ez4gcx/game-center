@@ -10,6 +10,9 @@ public static class ControlModes
 
 public sealed class AppSettings
 {
+    /// <summary>Ngôn ngữ giao diện ("vi", "en"). null: chưa chọn, xác định lúc khởi động (Loc.DetectDefault).</summary>
+    public string? Language { get; set; }
+
     /// <summary>Game chạy toàn màn hình.</summary>
     public bool Fullscreen { get; set; } = true;
     /// <summary>Launcher tự mở toàn màn hình.</summary>

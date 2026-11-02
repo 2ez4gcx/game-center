@@ -30,6 +30,8 @@ public sealed class AppPaths
     public string DefaultsDir => Path.Combine(AppDir, "Defaults");
     public string PlatformsJson => Path.Combine(DefaultsDir, "platforms.json");
     public string RetroArchBaseCfg => Path.Combine(DefaultsDir, "retroarch-base.cfg");
+    /// <summary>Bộ cài Windows ghi ngôn ngữ người dùng đã chọn khi cài ("Language=vi|en").</summary>
+    public string InstallerIni => Path.Combine(DefaultsDir, "installer.ini");
     public string LicensesDir => Path.Combine(AppDir, "Licenses");
 
     // --- Thư mục dữ liệu ---
@@ -49,7 +51,7 @@ public sealed class AppPaths
     public string LogFile => Path.Combine(LogsDir, "gamecenter.log");
     public string BackupsDir => Path.Combine(DataDir, "Backups");
 
-    public static readonly string[] DefaultPlatformFolders = { "NES", "SNES", "GB", "GBA", "MegaDrive", "PS1" };
+    public static readonly string[] DefaultPlatformFolders = { "NES", "SNES", "GB", "GBA", "MegaDrive", "PS1", "PS2" };
 
     public void EnsureDataFolders()
     {

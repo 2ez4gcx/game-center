@@ -9,7 +9,12 @@ namespace GameCenter.Tests;
 
 public sealed class TestEnv : IDisposable
 {
-    public string Root { get; } = Path.Combine(Path.GetTempPath(), "gc-test-" + Guid.NewGuid().ToString("N")[..8], "Dữ liệu game");
+    /// <summary>
+    /// Thư mục dữ liệu thử (mặc định có dấu tiếng Việt và dấu cách để kiểm thử đường dẫn Unicode).
+    /// GAMECENTER_TEST_ROOT: dùng thư mục khác (ví dụ chỉ ASCII); GAMECENTER_TEST_KEEP=1: giữ lại sau khi chạy để xem.
+    /// </summary>
+    public string Root { get; } = Path.Combine(Environment.GetEnvironmentVariable("GAMECENTER_TEST_ROOT") is { Length: > 0 } r ? r : Path.GetTempPath(),
+        "gc-test-" + Guid.NewGuid().ToString("N")[..8], Environment.GetEnvironmentVariable("GAMECENTER_TEST_ROOT") is { Length: > 0 } ? "data" : "Dữ liệu game");
     public AppPaths Paths { get; }
     public PlatformCatalog Catalog { get; }
 
@@ -67,6 +72,7 @@ public sealed class TestEnv : IDisposable
 
     public void Dispose()
     {
+        if (Environment.GetEnvironmentVariable("GAMECENTER_TEST_KEEP") == "1") return;
         try { Directory.Delete(Path.GetDirectoryName(Root)!, true); } catch { }
     }
 }

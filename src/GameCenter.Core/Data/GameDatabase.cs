@@ -87,6 +87,13 @@ public sealed class GameDatabase
                 extensions_json TEXT NOT NULL,
                 enabled INTEGER DEFAULT 1
             );
+            -- Tên save (tên file chạy, bỏ đuôi) mỗi game đã dùng: đổi tên file / ghép đĩa vẫn tìm lại được save cũ
+            CREATE TABLE IF NOT EXISTS save_names (
+                game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                name TEXT NOT NULL COLLATE NOCASE,
+                last_used TEXT,
+                PRIMARY KEY (game_id, name)
+            );
             """);
 
         foreach (var p in catalog.Platforms)
@@ -280,6 +287,46 @@ public sealed class GameDatabase
             });
         }
         return list;
+    }
+
+    /// <summary>Đường dẫn từng đĩa của game nhiều đĩa (theo thứ tự đĩa).</summary>
+    public List<string> GetDiscs(long gameId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT file_path FROM discs WHERE game_id=$g ORDER BY disc_number";
+        cmd.Parameters.AddWithValue("$g", gameId);
+        using var r = cmd.ExecuteReader();
+        var list = new List<string>();
+        while (r.Read()) list.Add(r.GetString(0));
+        return list;
+    }
+
+    /// <summary>Các tên save game này đã dùng, mới nhất trước.</summary>
+    public List<string> GetSaveNames(long gameId)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT name FROM save_names WHERE game_id=$g ORDER BY last_used DESC";
+        cmd.Parameters.AddWithValue("$g", gameId);
+        using var r = cmd.ExecuteReader();
+        var list = new List<string>();
+        while (r.Read()) list.Add(r.GetString(0));
+        return list;
+    }
+
+    public void RecordSaveName(long gameId, string name)
+    {
+        using var c = Open();
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO save_names(game_id, name, last_used) VALUES($g,$n,$t)
+            ON CONFLICT(game_id, name) DO UPDATE SET last_used=$t
+            """;
+        cmd.Parameters.AddWithValue("$g", gameId);
+        cmd.Parameters.AddWithValue("$n", name);
+        cmd.Parameters.AddWithValue("$t", DateTime.Now.ToString("o"));
+        cmd.ExecuteNonQuery();
     }
 
     // ------------------------------------------------------------------ Ghi

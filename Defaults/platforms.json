@@ -1,5 +1,5 @@
 {
-  "_note": "Core đã chọn và kiểm tra license: xem Licenses/Core-LICENSES. Tên .dll khớp bản buildbot libretro (RetroArch 1.22.2).",
+  "_note": "Core đã chọn và kiểm tra license: xem Licenses/Core-LICENSES. Tên .dll khớp bản buildbot libretro (RetroArch 1.22.2). disc = game chạy từ đĩa.",
   "platforms": [
     {
       "name": "NES",
@@ -42,11 +42,27 @@
       "enabled": true
     },
     {
+      "name": "MasterSystem",
+      "displayName": "Master System",
+      "folders": ["MasterSystem", "Master System", "SMS", "MarkIII"],
+      "core": "genesis_plus_gx_libretro.dll",
+      "extensions": [".sms", ".zip"],
+      "enabled": true
+    },
+    {
+      "name": "GameGear",
+      "displayName": "Game Gear",
+      "folders": ["GameGear", "Game Gear", "GG"],
+      "core": "genesis_plus_gx_libretro.dll",
+      "extensions": [".gg", ".zip"],
+      "enabled": true
+    },
+    {
       "name": "MegaDrive",
       "displayName": "Mega Drive",
       "folders": ["MegaDrive", "Mega Drive", "Genesis", "MD"],
       "core": "genesis_plus_gx_libretro.dll",
-      "extensions": [".md", ".gen", ".bin", ".zip"],
+      "extensions": [".md", ".gen", ".smd", ".bin", ".zip"],
       "enabled": true
     },
     {
@@ -54,12 +70,27 @@
       "displayName": "PS1",
       "folders": ["PS1", "PSX", "PlayStation"],
       "core": "mednafen_psx_hw_libretro.dll",
-      "extensions": [".cue", ".bin", ".pbp", ".chd", ".m3u"],
+      "extensions": [".cue", ".bin", ".pbp", ".chd", ".ccd", ".m3u"],
+      "disc": true,
       "enabled": true,
       "bios": {
         "files": ["scph5500.bin", "scph5501.bin", "scph5502.bin", "scph1001.bin", "scph7001.bin"],
         "required": false,
         "note": "Beetle PSX HW dùng OpenBIOS khi không có BIOS; BIOS gốc cho tương thích tốt hơn."
+      }
+    },
+    {
+      "name": "PS2",
+      "displayName": "PS2",
+      "folders": ["PS2", "PlayStation2", "PlayStation 2"],
+      "core": "pcsx2_libretro.dll",
+      "extensions": [".iso", ".chd", ".cso", ".zso", ".cue", ".bin", ".img", ".mdf", ".nrg", ".m3u"],
+      "disc": true,
+      "enabled": true,
+      "bios": {
+        "detect": "ps2",
+        "required": true,
+        "note": "LRPS2 cần BIOS PS2 thật, tìm trong <system>/pcsx2/bios (mọi file 4–8 MB có bảng ROMDIR). Game Center tự chép BIOS người dùng để ở BIOS/ hoặc BIOS/PS2/ sang đó."
       }
     }
   ]

@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using GameCenter.Core.Config;
 using GameCenter.Core.Data;
 using GameCenter.Core.Emulation;
+using GameCenter.Core.Localization;
 using GameCenter.Core.Util;
 
 namespace GameCenter.Desktop;
@@ -19,18 +20,22 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _renderer;
     private readonly TextBox _duckPath;
     private readonly TextBlock _dataDir;
+    private readonly List<(string Code, RadioButton Button)> _languages = new();
     private string _newDataDir = App.Paths.DataDir;
 
-    private static readonly (string Tag, string Label)[] Renderers =
+    private static readonly (string Tag, string Key)[] Renderers =
     {
-        ("auto", "Tự động (khuyên dùng)"),
-        ("vulkan", "Vulkan"),
-        ("software", "Phần mềm (máy yếu / lỗi hình)"),
+        ("auto", "settings.renderer_auto"),
+        ("vulkan", "settings.renderer_vulkan"),
+        ("software", "settings.renderer_software"),
     };
+
+    /// <summary>Ngôn ngữ người dùng đã chọn và lưu (cửa sổ chính dùng để biết có cần tải lại giao diện không).</summary>
+    public string? ChosenLanguage { get; private set; }
 
     public SettingsWindow()
     {
-        Title = "Cài đặt";
+        Title = Loc.T("settings.title");
         Width = 860;
         Height = 860;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -39,52 +44,63 @@ public sealed class SettingsWindow : Window
 
         var s = App.Settings;
         var root = new StackPanel { Margin = new Thickness(32) };
-        root.Children.Add(Dialogs.Heading("Cài đặt"));
+        root.Children.Add(Dialogs.Heading(Loc.T("settings.title")));
+
+        // --- Ngôn ngữ (đặt đầu tiên, tiêu đề viết cả 2 thứ tiếng để ai cũng tìm được)
+        root.Children.Add(Dialogs.Section(Loc.T("settings.language")));
+        var langRow = new WrapPanel();
+        foreach (var (code, name) in Loc.Available)
+        {
+            var rb = new RadioButton { Content = name, GroupName = "language", IsChecked = code == Loc.Language, FontSize = 20, Margin = new Thickness(0, 4, 28, 4) };
+            _languages.Add((code, rb));
+            langRow.Children.Add(rb);
+        }
+        root.Children.Add(langRow);
 
         // --- Màn hình
-        root.Children.Add(Dialogs.Section("Màn hình"));
-        _fullscreen = new CheckBox { Content = "Chơi game toàn màn hình", IsChecked = s.Fullscreen };
-        _launcherFs = new CheckBox { Content = "Game Center mở toàn màn hình", IsChecked = s.LauncherFullscreen };
-        _discGuide = new CheckBox { Content = "Hiện hướng dẫn đổi đĩa với game nhiều đĩa", IsChecked = s.ShowDiscChangeGuide };
+        root.Children.Add(Dialogs.Section(Loc.T("settings.screen")));
+        _fullscreen = new CheckBox { Content = Loc.T("settings.fullscreen"), IsChecked = s.Fullscreen };
+        _launcherFs = new CheckBox { Content = Loc.T("settings.launcher_fullscreen"), IsChecked = s.LauncherFullscreen };
+        _discGuide = new CheckBox { Content = Loc.T("settings.disc_guide"), IsChecked = s.ShowDiscChangeGuide };
         root.Children.Add(_fullscreen);
         root.Children.Add(_launcherFs);
         root.Children.Add(_discGuide);
 
         // --- Save game
-        root.Children.Add(Dialogs.Section("Lưu game"));
-        _resume = new CheckBox { Content = "Khi thoát game, hỏi có muốn lưu lại chỗ đang chơi không", IsChecked = s.AskSaveStateOnExit };
+        root.Children.Add(Dialogs.Section(Loc.T("settings.saves")));
+        _resume = new CheckBox { Content = Loc.T("settings.ask_state"), IsChecked = s.AskSaveStateOnExit };
         root.Children.Add(_resume);
-        root.Children.Add(Dialogs.Para("Save trong game (lưu vào memory card, lưu trong băng) luôn được giữ tự động, không cần làm gì thêm. Lưu chỗ đang chơi là tính năng thêm của giả lập, giúp chơi tiếp ở đúng khoảnh khắc đã thoát.", 18));
+        root.Children.Add(Dialogs.Para(Loc.T("settings.saves_text"), 18));
 
         // --- Điều khiển
-        root.Children.Add(Dialogs.Section("Điều khiển"));
-        root.Children.Add(Dialogs.Para("Tay cầm Xbox, PlayStation và tay cầm tương thích dùng được ngay. Bàn phím dùng song song được với tay cầm. Cấu hình một lần là dùng cho mọi hệ máy.", 20));
+        root.Children.Add(Dialogs.Section(Loc.T("settings.controls")));
+        root.Children.Add(Dialogs.Para(Loc.T("settings.controls_text"), 20));
         root.Children.Add(Dialogs.Row(
-            Dialogs.Button("🎮  Cấu hình tay cầm", async (_, _) => await OpenRetroArchMenu(this)),
-            Dialogs.Button("⌨  Thiết lập phím", async (_, _) => await new KeyBindingWindow().ShowDialog(this))));
+            Dialogs.Button(Loc.T("settings.configure_gamepad"), async (_, _) => await OpenRetroArchMenu(this)),
+            Dialogs.Button(Loc.T("main.setup_keys"), async (_, _) => await new KeyBindingWindow().ShowDialog(this))));
 
         // --- Dữ liệu
-        root.Children.Add(Dialogs.Section("Dữ liệu"));
-        _dataDir = Dialogs.Para("Thư mục dữ liệu: " + App.Paths.DataDir, 20);
+        root.Children.Add(Dialogs.Section(Loc.T("settings.data")));
+        _dataDir = Dialogs.Para(Loc.T("settings.data_dir", App.Paths.DataDir), 20);
         root.Children.Add(_dataDir);
         root.Children.Add(Dialogs.Row(
-            Dialogs.Button("📂  Mở thư mục save", (_, _) => MainWindow.OpenFolder(App.Paths.SavesDir)),
-            Dialogs.Button("💾  Sao lưu dữ liệu", async (_, _) => await Backup()),
-            Dialogs.Button("🧩  Mở thư mục BIOS", (_, _) => MainWindow.OpenFolder(App.Paths.BiosDir)),
-            Dialogs.Button("Đổi thư mục dữ liệu…", async (_, _) => await ChangeDataDir())));
+            Dialogs.Button(Loc.T("settings.open_saves"), (_, _) => MainWindow.OpenFolder(App.Paths.SavesDir)),
+            Dialogs.Button(Loc.T("settings.backup"), async (_, _) => await Backup()),
+            Dialogs.Button(Loc.T("settings.open_bios"), (_, _) => MainWindow.OpenFolder(App.Paths.BiosDir)),
+            Dialogs.Button(Loc.T("settings.change_data_dir"), async (_, _) => await ChangeDataDir())));
 
         // --- Nâng cao
-        root.Children.Add(Dialogs.Section("Nâng cao"));
-        root.Children.Add(Dialogs.Para("Cách vẽ hình game PS1:", 20));
-        _renderer = new ComboBox { Width = 420, HorizontalAlignment = HorizontalAlignment.Left, ItemsSource = Renderers.Select(r => r.Label).ToList() };
+        root.Children.Add(Dialogs.Section(Loc.T("settings.advanced")));
+        root.Children.Add(Dialogs.Para(Loc.T("settings.ps1_renderer"), 20));
+        _renderer = new ComboBox { Width = 460, HorizontalAlignment = HorizontalAlignment.Left, ItemsSource = Renderers.Select(r => Loc.T(r.Key)).ToList() };
         _renderer.SelectedIndex = Math.Max(0, Array.FindIndex(Renderers, r => r.Tag == s.Ps1Renderer));
         root.Children.Add(_renderer);
 
-        _useDuck = new CheckBox { Content = "Chơi PS1 bằng DuckStation mà tôi đã tự cài", IsChecked = s.UseUserDuckStation, Margin = new Thickness(0, 16, 0, 4) };
+        _useDuck = new CheckBox { Content = Loc.T("settings.use_duck"), IsChecked = s.UseUserDuckStation, Margin = new Thickness(0, 16, 0, 4) };
         root.Children.Add(_useDuck);
-        root.Children.Add(Dialogs.Para("Game Center không kèm DuckStation. Bạn tự tải từ trang chính thức, rồi chọn file chạy DuckStation ở đây.", 18));
+        root.Children.Add(Dialogs.Para(Loc.T("settings.duck_text"), 18));
         _duckPath = new TextBox { Text = s.DuckStationPath ?? "", FontSize = 18 };
-        var browse = Dialogs.Button("Chọn…", async (_, _) => await BrowseDuck());
+        var browse = Dialogs.Button(Loc.T("settings.browse"), async (_, _) => await BrowseDuck());
         var duckRow = new DockPanel();
         DockPanel.SetDock(browse, Dock.Right);
         duckRow.Children.Add(browse);
@@ -93,12 +109,12 @@ public sealed class SettingsWindow : Window
 
         // --- Nút
         var buttons = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 24, 0, 0) };
-        buttons.Children.Add(Dialogs.Button("Lưu", async (_, _) => await Save(), primary: true));
-        buttons.Children.Add(Dialogs.Button("Hủy", (_, _) => Close()));
+        buttons.Children.Add(Dialogs.Button(Loc.T("dialog.save"), async (_, _) => await Save(), primary: true));
+        buttons.Children.Add(Dialogs.Button(Loc.T("dialog.cancel"), (_, _) => Close()));
         root.Children.Add(buttons);
 
         Content = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-        Opened += (_, _) => _fullscreen.Focus(NavigationMethod.Directional);
+        Opened += (_, _) => (_languages.FirstOrDefault(l => l.Button.IsChecked == true).Button ?? (Control)_fullscreen).Focus(NavigationMethod.Directional);
     }
 
     public static async Task OpenRetroArchMenu(Window owner)
@@ -106,11 +122,10 @@ public sealed class SettingsWindow : Window
         var psi = new EmulatorLauncher(App.Paths, App.Catalog, App.Settings).BuildMenuStartInfo();
         if (psi == null)
         {
-            await Dialogs.Info(owner, "Thiếu RetroArch", "Không tìm thấy RetroArch trong thư mục cài đặt. Hãy cài lại Game Center.");
+            await Dialogs.Info(owner, Loc.T("ra.missing_title"), Loc.T("launch.retroarch_missing"));
             return;
         }
-        await Dialogs.Info(owner, "Cấu hình tay cầm",
-            "Cửa sổ giả lập sẽ mở ra.\n\nVào: Thiết lập → Điều khiển → Cổng 1 → \"Thiết lập Tất cả Điều khiển\".\nBấm lần lượt từng nút trên tay cầm theo hướng dẫn.\n\nXong thì bấm Esc 2 lần để đóng cửa sổ giả lập.");
+        await Dialogs.Info(owner, Loc.T("ra.configure_title"), Loc.T("ra.configure_text"));
         try
         {
             RetroArchConfig.Write(App.Paths, App.Settings);
@@ -124,13 +139,13 @@ public sealed class SettingsWindow : Window
         try
         {
             var zip = await Task.Run(() => BackupService.CreateBackup(App.Paths));
-            await Dialogs.Info(this, "Đã sao lưu", $"Đã sao lưu save game vào:\n{zip}");
+            await Dialogs.Info(this, Loc.T("backup.done_title"), Loc.T("backup.done_text", zip));
             MainWindow.OpenFolder(App.Paths.BackupsDir);
         }
         catch (Exception ex)
         {
             Log.Error("Sao lưu lỗi", ex);
-            await Dialogs.Info(this, "Không sao lưu được", ex.Message);
+            await Dialogs.Info(this, Loc.T("backup.error_title"), ex.Message);
         }
     }
 
@@ -139,18 +154,18 @@ public sealed class SettingsWindow : Window
         var start = await StorageProvider.TryGetFolderFromPathAsync(App.Paths.DataDir);
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Chọn thư mục dữ liệu Game Center",
+            Title = Loc.T("settings.pick_data_dir"),
             SuggestedStartLocation = start,
         });
         var path = folders.FirstOrDefault()?.TryGetLocalPath();
         if (path == null) return;
         _newDataDir = path;
-        _dataDir.Text = "Thư mục dữ liệu (mới): " + _newDataDir;
+        _dataDir.Text = Loc.T("settings.data_dir_new", _newDataDir);
     }
 
     private async Task BrowseDuck()
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Chọn file chạy DuckStation", AllowMultiple = false });
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = Loc.T("settings.pick_duck"), AllowMultiple = false });
         var path = files.FirstOrDefault()?.TryGetLocalPath();
         if (path == null) return;
         _duckPath.Text = path;
@@ -170,7 +185,7 @@ public sealed class SettingsWindow : Window
 
         if (s.UseUserDuckStation && (s.DuckStationPath == null || !File.Exists(s.DuckStationPath)))
         {
-            await Dialogs.Info(this, "Chưa chọn DuckStation", "Hãy bấm \"Chọn…\" và chọn file chạy DuckStation, hoặc bỏ đánh dấu ô DuckStation.");
+            await Dialogs.Info(this, Loc.T("settings.duck_missing_title"), Loc.T("settings.duck_missing_text"));
             return;
         }
 
@@ -186,16 +201,22 @@ public sealed class SettingsWindow : Window
                 var newPaths = new AppPaths(App.Paths.AppDir, _newDataDir);
                 newPaths.EnsureDataFolders();
                 if (!File.Exists(newPaths.SettingsJson)) s.Save(newPaths.SettingsJson);
-                await Dialogs.Info(this, "Đã đổi thư mục dữ liệu",
-                    "Hãy đóng và mở lại Game Center để dùng thư mục mới.\nDữ liệu ở thư mục cũ vẫn được giữ nguyên.");
+                // Mang save sang thư mục mới để không "mất" save (thư mục cũ giữ nguyên)
+                int copied = await Task.Run(() => BackupService.CopyUserData(App.Paths, newPaths));
+                var text = Loc.T("settings.data_dir_changed_text");
+                if (copied > 0) text += "\n\n" + Loc.T("settings.data_dir_copied", copied);
+                await Dialogs.Info(this, Loc.T("settings.data_dir_changed_title"), text);
             }
         }
         catch (Exception ex)
         {
             Log.Error("Lưu cài đặt lỗi", ex);
-            await Dialogs.Info(this, "Không lưu được", ex.Message);
+            await Dialogs.Info(this, Loc.T("settings.save_error_title"), ex.Message);
             return;
         }
+        // Đổi ngôn ngữ: cửa sổ chính tải lại giao diện sau khi cửa sổ này đóng
+        var lang = _languages.FirstOrDefault(l => l.Button.IsChecked == true).Code;
+        if (lang != null && lang != Loc.Language) ChosenLanguage = lang;
         Close();
     }
 }

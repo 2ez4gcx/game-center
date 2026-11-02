@@ -19,6 +19,28 @@ public static class RetroArchConfig
     public const string QuitComboStartSelect = "4";
     public const string MenuComboL3R3 = "2";
 
+    /// <summary>
+    /// Mã ngôn ngữ RetroArch (enum retro_language): 0 English, 1 日本語, 2 Français, 3 Español, 4 Deutsch,
+    /// 5 Italiano, 6 Nederlands, 7 Português (Brasil), 9 Русский, 10 한국어, 12 简体中文, 14 Polski, 15 Tiếng Việt.
+    /// Chưa chọn ngôn ngữ: tiếng Việt như các bản trước.
+    /// </summary>
+    public static string RetroArchLanguage(string? language) => language switch
+    {
+        null or "vi" => "15",
+        "ja" => "1",
+        "fr" => "2",
+        "es" => "3",
+        "de" => "4",
+        "it" => "5",
+        "nl" => "6",
+        "pt" => "7",
+        "ru" => "9",
+        "ko" => "10",
+        "zh" => "12",
+        "pl" => "14",
+        _ => "0",
+    };
+
     public static Dictionary<string, string> ManagedKeys(AppPaths paths, AppSettings settings, bool vulkanAvailable)
     {
         bool useVulkan = settings.Ps1Renderer switch
@@ -49,8 +71,8 @@ public static class RetroArchConfig
             ["input_exit_emulator"] = "escape",
             ["quit_press_twice"] = "true",
             ["confirm_quit"] = "false",
-            // Giao diện và thông báo của RetroArch bằng tiếng Việt (RETRO_LANGUAGE_VIETNAMESE = 15)
-            ["user_language"] = "15",
+            // Menu và thông báo của RetroArch cùng ngôn ngữ với Game Center
+            ["user_language"] = RetroArchLanguage(settings.Language),
             // Mở menu (đổi đĩa, cấu hình tay cầm): L3+R3 hoặc F1
             ["menu_toggle_gamepad_combo"] = MenuComboL3R3,
             ["input_menu_toggle"] = "f1",
@@ -77,6 +99,10 @@ public static class RetroArchConfig
             ["config_save_on_exit"] = "true",
             // Game Center tự quản lý lịch sử chơi; không để RetroArch ghi playlist vào thư mục cài đặt
             ["history_list_enable"] = "false",
+            // RetroArch mặc định ghi thời gian chơi (.lrtl) vào playlists/logs cạnh retroarch.exe, tức thư mục cài đặt
+            // (macOS / Linux: chỉ đọc). Game Center đã đếm số lần và lần chơi cuối nên tắt.
+            ["content_runtime_log"] = "false",
+            ["content_runtime_log_aggregate"] = "false",
         };
 
         // Thư mục đi kèm RetroArch (Windows/Linux); macOS dùng mặc định bên trong RetroArch.app
@@ -103,7 +129,9 @@ public static class RetroArchConfig
         // - Save state: RetroArch chụp lại khi thoát, Game Center hỏi người chơi giữ hay bỏ.
         //   Không tự nạp: chỉ nạp khi người chơi chọn "Chơi tiếp" (Game Center truyền --appendconfig).
         keys["autosave_interval"] = "10";
-        keys["block_sram_overwrite"] = "false";
+        // Save state của Beetle PSX chứa cả dữ liệu thẻ nhớ: nạp state cũ ("Chơi tiếp") mà không chặn thì thẻ nhớ
+        // bị kéo về lúc chụp state, mất các lần save trong game làm sau đó. Chặn: thẻ nhớ luôn giữ bản mới nhất trên ổ.
+        keys["block_sram_overwrite"] = "true";
         keys["savestate_auto_save"] = settings.AskSaveStateOnExit ? "true" : "false";
         keys["savestate_auto_load"] = "false";
         keys["savestate_auto_index"] = "false";
@@ -126,6 +154,11 @@ public static class RetroArchConfig
         return new Dictionary<string, string>
         {
             ["beetle_psx_hw_renderer"] = useVulkan ? "hardware_vk" : "software",
+            // Cố định cách lưu thẻ nhớ để save luôn ở chỗ Game Center tìm và sao lưu (docs/bao-toan-save.md):
+            // PS1: thẻ nhớ 1 là "<tên file chạy>.srm" trong Saves/ (đổi sang "mednafen" thì save thành .mcr ở chỗ khác)
+            ["beetle_psx_hw_use_mednafen_memcard0_method"] = "libretro",
+            // PS2: thẻ nhớ dùng chung mọi game như máy thật (BIOS/pcsx2/memcards), không phụ thuộc tên file game
+            ["pcsx2_shared_memory_cards"] = "enabled",
         };
     }
 

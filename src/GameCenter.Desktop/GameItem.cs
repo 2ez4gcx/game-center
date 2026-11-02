@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using GameCenter.Core.Data;
+using GameCenter.Core.Localization;
 using GameCenter.Core.Scanning;
 
 namespace GameCenter.Desktop;
@@ -19,11 +20,13 @@ public sealed class GameItem : INotifyPropertyChanged
     public string Name => Record.Name;
 
     public string PlatformName =>
-        IsUnknown ? "Chưa nhận ra" : App.Catalog.Get(Record.Platform)?.DisplayName ?? Record.Platform;
+        IsUnknown ? Loc.T("tab.unknown") : App.Catalog.Get(Record.Platform)?.DisplayName ?? Record.Platform;
 
     public string PlatformShort => Record.Platform switch
     {
         "MegaDrive" => "MD",
+        "MasterSystem" => "SMS",
+        "GameGear" => "GG",
         GameDatabase.UnknownPlatform => "?",
         _ => Record.Platform,
     };
@@ -36,8 +39,11 @@ public sealed class GameItem : INotifyPropertyChanged
         "GB" => Color.FromRgb(0x9C, 0xCC, 0x65),
         "GBC" => Color.FromRgb(0x1D, 0xE9, 0xB6),
         "GBA" => Color.FromRgb(0x7C, 0x8C, 0xFF),
+        "MasterSystem" => Color.FromRgb(0xFF, 0x6E, 0x40),
+        "GameGear" => Color.FromRgb(0x26, 0xC6, 0xDA),
         "MegaDrive" => Color.FromRgb(0x40, 0xC4, 0xFF),
         "PS1" => Color.FromRgb(0xFF, 0xD7, 0x40),
+        "PS2" => Color.FromRgb(0x44, 0x8A, 0xFF),
         _ => Color.FromRgb(0xFF, 0x98, 0x00),
     };
 
@@ -57,24 +63,27 @@ public sealed class GameItem : INotifyPropertyChanged
         get
         {
             var parts = new List<string>();
-            if (Record.DiscCount >= 2) parts.Add($"{Record.DiscCount} đĩa");
-            if (Record.PlayCount > 0) parts.Add($"đã chơi {Record.PlayCount} lần");
+            if (Record.DiscCount >= 2) parts.Add(Loc.T("game.discs", Record.DiscCount));
+            if (Record.PlayCount > 0) parts.Add(Loc.Plural("game.played", Record.PlayCount));
             if (Record.LastPlayedAt != null && DateTime.TryParse(Record.LastPlayedAt, out var d))
-                parts.Add($"lần cuối {d:dd/MM/yyyy}");
+                parts.Add(Loc.T("game.last_played", Loc.Date(d)));
             return string.Join("  ·  ", parts);
         }
     }
 
     public string? Warning => Record.ScanStatus switch
     {
-        ScanStatus.BrokenCue => "⚠ " + (Record.ScanMessage ?? "File game bị thiếu."),
-        ScanStatus.Unknown => "Bấm \"Chọn hệ máy\" để cho biết game này của máy nào.",
+        ScanStatus.BrokenCue => "⚠ " + (Record.ScanMessage ?? Loc.T("game.file_missing")),
+        // File nén cần giải nén, máy chưa hỗ trợ...: hiện đúng lý do; còn lại nhắc chọn hệ máy
+        ScanStatus.Unknown => Record.ScanMessage ?? Loc.T("game.unknown_hint"),
+        // Chơi được nhưng cần lưu ý (ví dụ bộ nhiều đĩa thiếu đĩa)
+        ScanStatus.Ok when Record.ScanMessage != null => "⚠ " + Record.ScanMessage,
         _ => null,
     };
 
     public bool HasWarning => Warning != null;
     public string FavoriteIcon => Record.IsFavorite ? "★" : "☆";
-    public string PlayLabel => IsUnknown ? "Chọn hệ máy" : "▶  CHƠI";
+    public string PlayLabel => Loc.T(IsUnknown ? "game.choose_platform" : "game.play");
 
     private Bitmap? _cover;
     private bool _coverLoaded;

@@ -64,4 +64,19 @@ public static partial class CueParser
     /// <summary>Nội dung .cue tạm cho file .bin PS1 đơn (mục 8.4).</summary>
     public static string BuildTempCue(string binPath) =>
         $"FILE \"{binPath}\" BINARY\r\n  TRACK 01 MODE2/2352\r\n    INDEX 01 00:00:00\r\n";
+
+    /// <summary>
+    /// .cue tạm cho đĩa nhiều track bị mất .cue (mỗi track một file, kiểu Redump): track 1 dữ liệu,
+    /// các track sau là nhạc. File track nhạc của Redump đã gồm 2 giây khoảng lặng đầu (INDEX 00 → INDEX 01).
+    /// </summary>
+    public static string BuildMultiTrackCue(IReadOnlyList<string> trackFiles)
+    {
+        var sb = new StringBuilder(BuildTempCue(trackFiles[0]));
+        for (int i = 1; i < trackFiles.Count; i++)
+        {
+            sb.Append($"FILE \"{trackFiles[i]}\" BINARY\r\n");
+            sb.Append($"  TRACK {i + 1:00} AUDIO\r\n    INDEX 00 00:00:00\r\n    INDEX 01 00:02:00\r\n");
+        }
+        return sb.ToString();
+    }
 }

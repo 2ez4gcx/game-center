@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using GameCenter.Core.Config;
 using GameCenter.Core.Data;
 using GameCenter.Core.Emulation;
+using GameCenter.Core.Localization;
 using GameCenter.Core.Scanning;
 using GameCenter.Core.Util;
 
@@ -43,6 +44,7 @@ public partial class MainWindow : Window
             }
             (App.Settings.ControlMode == ControlModes.Keyboard ? ModeKeyboard : ModeGamepad).IsChecked = true;
             AuthorText.Text = $"Game Center v{AppInfo.Version}  ·  by {AppInfo.Author}";
+            LanguageButton.Content = "🌐  " + string.Join(" / ", Loc.Available.Where(a => a.Code != Loc.Language).Select(a => a.Name));
             UpdateControlUi();
             ApplyLauncherFullscreen();
             _loaded = true;
@@ -56,6 +58,8 @@ public partial class MainWindow : Window
         {
             Gamepad.Instance.Pressed -= OnPad;
             _watcher?.Dispose();
+            // Cửa sổ được tạo lại khi đổi ngôn ngữ: không để cửa sổ cũ quét thêm lần nữa
+            _rescanTimer?.Stop();
         };
     }
 
@@ -78,15 +82,15 @@ public partial class MainWindow : Window
         bool keyboard = App.Settings.ControlMode == ControlModes.Keyboard;
         var k = KeyboardLayout.Resolve(App.Settings.KeyBindings);
         string D(string id) => KeyboardLayout.DisplayName(k[id]);
-        ExitHint.Text = keyboard ? "bấm Esc 2 lần" : "bấm START + SELECT 2 lần  (hoặc Esc 2 lần)";
+        ExitHint.Text = Loc.T(keyboard ? "main.exit_hint_keyboard" : "main.exit_hint_gamepad");
         ControlHint.Text = keyboard
-            ? $"Di chuyển {D("up")}{D("left")}{D("down")}{D("right")}  ·  Nút {D("x")}{D("y")}{D("b")}{D("a")}  ·  START {D("start")}"
-            : "Chọn: ↑↓   Chơi: A   Đổi mục: LB / RB";
-        ControlSetupButton.Content = keyboard ? "⌨  Thiết lập phím" : "🎮  Thiết lập tay cầm";
+            ? Loc.T("main.control_hint_keyboard", $"{D("up")}{D("left")}{D("down")}{D("right")}", $"{D("x")}{D("y")}{D("b")}{D("a")}", D("start"))
+            : Loc.T("main.control_hint_gamepad");
+        ControlSetupButton.Content = Loc.T(keyboard ? "main.setup_keys" : "main.setup_gamepad");
 
         bool connected = Gamepad.Instance.IsConnected;
         PadDot.Fill = connected ? Dialogs.Res("Accent") : new SolidColorBrush(Color.FromRgb(0x60, 0x7D, 0x8B));
-        PadStatus.Text = connected ? "Tay cầm đã kết nối" : "Chưa thấy tay cầm";
+        PadStatus.Text = Loc.T(connected ? "main.pad_connected" : "main.pad_missing");
     }
 
     private async void ControlSetup_Click(object? sender, RoutedEventArgs e)
@@ -165,13 +169,13 @@ public partial class MainWindow : Window
     private void BuildTabs()
     {
         int Count(Func<GameItem, bool> f) => _all.Count(f);
-        var tabs = new List<(string Key, string Icon, string Label, int Count)> { (TabAll, "◆", "Tất cả", _all.Count) };
+        var tabs = new List<(string Key, string Icon, string Label, int Count)> { (TabAll, "◆", Loc.T("tab.all"), _all.Count) };
         foreach (var p in App.Catalog.Platforms.Where(p => p.Enabled && _all.Any(g => g.Record.Platform == p.Name)))
             tabs.Add((p.Name, "▸", p.DisplayName, Count(g => g.Record.Platform == p.Name)));
-        tabs.Add((TabFav, "★", "Yêu thích", Count(g => g.Record.IsFavorite)));
-        tabs.Add((TabRecent, "◷", "Chơi gần đây", Count(g => g.Record.LastPlayedAt != null)));
+        tabs.Add((TabFav, "★", Loc.T("tab.favorites"), Count(g => g.Record.IsFavorite)));
+        tabs.Add((TabRecent, "◷", Loc.T("tab.recent"), Count(g => g.Record.LastPlayedAt != null)));
         if (_all.Any(g => g.IsUnknown))
-            tabs.Add((GameDatabase.UnknownPlatform, "?", "Chưa nhận ra", Count(g => g.IsUnknown)));
+            tabs.Add((GameDatabase.UnknownPlatform, "?", Loc.T("tab.unknown"), Count(g => g.IsUnknown)));
 
         if (!tabs.Any(t => t.Key == _tab)) _tab = TabAll;
         TabsPanel.Children.Clear();
@@ -199,10 +203,10 @@ public partial class MainWindow : Window
 
     private string TabTitle => _tab switch
     {
-        TabAll => "Tất cả game",
-        TabFav => "Yêu thích",
-        TabRecent => "Chơi gần đây",
-        GameDatabase.UnknownPlatform => "Chưa nhận ra",
+        TabAll => Loc.T("tab.all_title"),
+        TabFav => Loc.T("tab.favorites"),
+        TabRecent => Loc.T("tab.recent"),
+        GameDatabase.UnknownPlatform => Loc.T("tab.unknown"),
         _ => App.Catalog.Get(_tab)?.DisplayName ?? _tab,
     };
 
@@ -232,17 +236,17 @@ public partial class MainWindow : Window
         {
             if (_all.Count == 0)
             {
-                EmptyTitle.Text = "Chưa có game nào";
-                EmptyText.Text = $"1. Bấm \"Mở thư mục game\".\n2. Chép game vào thư mục đó (để chung một chỗ cũng được).\n3. Game sẽ tự hiện ra sau vài giây.\n\nThư mục game: {App.Paths.GamesDir}";
+                EmptyTitle.Text = Loc.T("main.empty_title");
+                EmptyText.Text = Loc.T("main.empty_text", App.Paths.GamesDir);
             }
             else
             {
-                EmptyTitle.Text = "Không có game nào ở đây";
-                EmptyText.Text = search.Length > 0 ? $"Không tìm thấy game có tên \"{search}\"." : "Mục này hiện chưa có game.";
+                EmptyTitle.Text = Loc.T("main.empty_here_title");
+                EmptyText.Text = search.Length > 0 ? Loc.T("main.empty_search", search) : Loc.T("main.empty_tab");
             }
         }
         SectionTitle.Text = TabTitle;
-        StatusText.Text = list.Count == _all.Count ? $"{_all.Count} GAME" : $"{list.Count} / {_all.Count} GAME";
+        StatusText.Text = list.Count == _all.Count ? Loc.Plural("main.status_count", _all.Count) : Loc.T("main.status_filtered", list.Count, _all.Count);
     }
 
     private static string RemoveDiacritics(string s)
@@ -268,7 +272,7 @@ public partial class MainWindow : Window
     {
         if (_scanning) { _rescanPending = true; return; }
         _scanning = true;
-        StatusText.Text = "Đang quét game...";
+        StatusText.Text = Loc.T("main.scanning");
         // Quét tự động không khóa giao diện
         if (!silent) IsEnabled = false;
         try
@@ -276,23 +280,24 @@ public partial class MainWindow : Window
             var scanner = new GameScanner(App.Catalog, App.Paths.GamesDir, App.Paths.PlaylistsDir);
             var summary = await Task.Run(() => App.Db.ApplyScan(scanner.Scan()));
             Log.Info($"Quét xong: {summary}");
+            ImportBios(scanner.BiosFiles);
             Reload();
             if (!silent)
             {
                 IsEnabled = true;
-                var msg = $"Game mới: {summary.Added}\nTổng số game: {_all.Count}";
-                if (summary.Moved > 0) msg += $"\nGame đã chuyển chỗ: {summary.Moved}";
-                if (summary.Missing > 0) msg += $"\nGame không còn tìm thấy: {summary.Missing}";
-                if (summary.Unknown > 0) msg += $"\n\nCó {summary.Unknown} game chưa nhận ra. Hãy xem mục \"Chưa nhận ra\".";
-                if (summary.Broken > 0) msg += $"\n\nCó {summary.Broken} game bị thiếu file (có dấu ⚠).";
-                await Dialogs.Info(this, "Quét xong", msg);
+                var msg = Loc.T("scan.result", summary.Added, _all.Count);
+                if (summary.Moved > 0) msg += Loc.T("scan.moved", summary.Moved);
+                if (summary.Missing > 0) msg += Loc.T("scan.missing", summary.Missing);
+                if (summary.Unknown > 0) msg += Loc.T("scan.unknown", summary.Unknown);
+                if (summary.Broken > 0) msg += Loc.T("scan.broken", summary.Broken);
+                await Dialogs.Info(this, Loc.T("scan.done_title"), msg);
             }
         }
         catch (Exception ex)
         {
             Log.Error("Lỗi khi quét", ex);
             IsEnabled = true;
-            await Dialogs.Info(this, "Không quét được", "Có lỗi khi quét thư mục game. Chi tiết đã ghi trong file log.");
+            await Dialogs.Info(this, Loc.T("scan.error_title"), Loc.T("scan.error_text"));
         }
         finally
         {
@@ -329,8 +334,13 @@ public partial class MainWindow : Window
         if (plan.Problem != LaunchProblem.None)
         {
             Log.Warn($"Không chạy được {item.Record.LaunchFile}: {plan.Problem}");
-            var title = plan.Problem == LaunchProblem.BiosMissing ? "Thiếu BIOS" : "Không chạy được game";
-            await Dialogs.Info(this, title, plan.Message);
+            if (plan.Problem == LaunchProblem.BiosMissing)
+            {
+                // Mở luôn thư mục BIOS để người dùng chép file vào
+                if (await Dialogs.Confirm(this, Loc.T("play.bios_missing_title"), plan.Message, yes: Loc.T("play.open_bios"), no: Loc.T("dialog.close")))
+                    OpenFolder(App.Paths.BiosDir);
+            }
+            else await Dialogs.Info(this, Loc.T("play.error_title"), plan.Message);
             return;
         }
 
@@ -342,21 +352,36 @@ public partial class MainWindow : Window
         try { RetroArchConfig.Write(App.Paths, App.Settings); }
         catch (Exception ex) { Log.Error("Không ghi được retroarch.cfg", ex); }
 
-        // Save state của giả lập: hỏi chơi tiếp hay chơi từ đầu (save trong game luôn được giữ)
-        bool useStates = App.Settings.AskSaveStateOnExit && !App.Settings.UseUserDuckStation;
-        var states = new SaveStateService(App.Paths.StatesDir);
-        if (useStates && states.FindAutoState(item.Record.LaunchFile) != null)
+        // Bảo vệ save (docs/bao-toan-save.md): game trùng tên file với game khác lưu ở thư mục riêng,
+        // nhận lại save từ tên cũ, sao lưu trước khi chơi. DuckStation tự quản lý save của nó.
+        bool retroArch = !(App.Settings.UseUserDuckStation && item.Record.Platform == "PS1");
+        var launchFile = item.Record.LaunchFile;
+        var appendConfigs = new List<string>();
+        SaveLocation? saves = null;
+        if (retroArch)
         {
-            bool resume = await Dialogs.Confirm(this, item.Name,
-                "Bạn đã lưu chỗ đang chơi ở lần trước.\nMuốn chơi tiếp từ chỗ đó, hay chơi từ đầu?\n\n(Save trong game của bạn vẫn được giữ nguyên dù chọn cách nào.)",
-                yes: "▶  Chơi tiếp", no: "Chơi từ đầu");
-            if (resume)
+            var guard = new SaveGuard(App.Paths);
+            try { saves = guard.Locate(item.Record, App.Db.GetGames(includeMissing: true), App.Catalog); }
+            catch (Exception ex) { Log.Error("Không xác định được nơi lưu save", ex); }
+            if (saves != null)
             {
-                // Chèn trước "-L": chỉ lần chạy này mới nạp save state
-                plan.StartInfo!.ArgumentList.Insert(2, "--appendconfig");
-                plan.StartInfo!.ArgumentList.Insert(3, WriteResumeConfig());
+                guard.PrepareForLaunch(App.Db, item.Record, saves);
+                if (SaveGuard.AppendConfig(saves) is { } perGame)
+                    appendConfigs.Add(WriteAppendConfig("save-dir.cfg", perGame));
             }
         }
+
+        // Save state của giả lập: hỏi chơi tiếp hay chơi từ đầu (save trong game luôn được giữ)
+        bool useStates = App.Settings.AskSaveStateOnExit && retroArch;
+        var states = new SaveStateService(saves?.StatesDir ?? App.Paths.StatesDir);
+        if (useStates && states.FindAutoState(launchFile) != null)
+        {
+            bool resume = await Dialogs.Confirm(this, item.Name, Loc.T("play.resume_text"),
+                yes: Loc.T("play.resume_yes"), no: Loc.T("play.resume_no"));
+            // Chỉ lần chạy này mới nạp save state
+            if (resume) appendConfigs.Add(WriteAppendConfig("resume.cfg", "savestate_auto_load = \"true\"\n"));
+        }
+        EmulatorLauncher.AddAppendConfigs(plan.StartInfo!, appendConfigs);
 
         _gameRunning = true;
         Gamepad.Instance.Suspended = true;
@@ -364,17 +389,17 @@ public partial class MainWindow : Window
         try
         {
             App.Db.MarkPlayed(item.Record.Id);
-            var previous = useStates ? states.BackupBeforePlay(item.Record.LaunchFile) : null;
+            var previous = useStates ? states.BackupBeforePlay(launchFile) : null;
             Hide();
             await launcher.RunAsync(plan.StartInfo!);
             BringToFront();
-            if (useStates) await AskKeepSaveState(item, states, startedUtc, previous);
+            if (useStates) await AskKeepSaveState(item, launchFile, states, startedUtc, previous);
         }
         catch (Exception ex)
         {
             Log.Error("Lỗi khi chạy game", ex);
             Show();
-            await Dialogs.Info(this, "Không chạy được game", "Không mở được trình giả lập. Chi tiết đã ghi trong file log.");
+            await Dialogs.Info(this, Loc.T("play.error_title"), Loc.T("play.start_failed"));
         }
         finally
         {
@@ -387,27 +412,26 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>File cấu hình phụ chỉ bật nạp save state cho lần chạy này.</summary>
-    private static string WriteResumeConfig()
+    /// <summary>File cấu hình phụ chỉ áp dụng cho lần chạy này (nạp save state, thư mục save riêng...).</summary>
+    private static string WriteAppendConfig(string name, string content)
     {
-        var path = Path.Combine(App.Paths.ConfigDir, "resume.cfg");
-        File.WriteAllText(path, "savestate_auto_load = \"true\"\n");
+        var path = Path.Combine(App.Paths.ConfigDir, name);
+        File.WriteAllText(path, content);
         return path;
     }
 
     /// <summary>Sau khi thoát game: hỏi có lưu lại chỗ đang chơi không. Bắt buộc chọn (Esc/B không đóng được).</summary>
-    private async Task AskKeepSaveState(GameItem item, SaveStateService states, DateTime startedUtc, string? previous)
+    private async Task AskKeepSaveState(GameItem item, string launchFile, SaveStateService states, DateTime startedUtc, string? previous)
     {
-        var state = states.NewStateSince(item.Record.LaunchFile, startedUtc);
+        var state = states.NewStateSince(launchFile, startedUtc);
         if (state == null)
         {
             // Giả lập không chụp được (ví dụ bị tắt ngang): giữ nguyên bản cũ, bỏ bản sao lưu
             if (previous != null) SaveStateService.Keep(previous);
             return;
         }
-        bool keep = await Dialogs.Confirm(this, "Lưu lại chỗ đang chơi?",
-            $"Bạn vừa thoát \"{item.Name}\".\nCó muốn lưu lại đúng chỗ đang chơi để lần sau chơi tiếp không?\n\n(Save trong game của bạn vẫn được giữ nguyên dù chọn cách nào.)",
-            yes: "💾  Lưu lại", no: "Không lưu", cancellable: false);
+        bool keep = await Dialogs.Confirm(this, Loc.T("play.keep_title"), Loc.T("play.keep_text", item.Name),
+            yes: Loc.T("play.keep_yes"), no: Loc.T("play.keep_no"), cancellable: false);
         try
         {
             if (keep) SaveStateService.Keep(state);
@@ -453,20 +477,48 @@ public partial class MainWindow : Window
     {
         var options = new List<(string Label, Func<Task> Run)>
         {
-            ("✏  Đổi tên hiển thị", () => Rename(item)),
-            ("📂  Mở thư mục chứa game", () => { OpenFolder(item.Record.FolderPath); return Task.CompletedTask; }),
-            ("🎮  Chọn hệ máy", () => ChoosePlatform(item)),
-            ("🖼  Chọn ảnh bìa", () => ChooseCover(item)),
-            (item.Record.IsFavorite ? "☆  Bỏ yêu thích" : "★  Thêm vào yêu thích", () => { ToggleFavorite(item); return Task.CompletedTask; }),
+            (Loc.T("more.rename"), () => Rename(item)),
+            (Loc.T("more.open_folder"), () => { OpenFolder(item.Record.FolderPath); return Task.CompletedTask; }),
+            (Loc.T("more.choose_platform"), () => ChoosePlatform(item)),
+            (Loc.T("more.choose_cover"), () => ChooseCover(item)),
+            (Loc.T(item.Record.IsFavorite ? "more.unfavorite" : "more.favorite"), () => { ToggleFavorite(item); return Task.CompletedTask; }),
+            (Loc.T("more.restore_save"), () => RestoreSave(item)),
         };
         int i = await Dialogs.Choose(this, item.Name, null, options.Select(o => o.Label).ToList());
         if (i >= 0) await options[i].Run();
     }
 
+    /// <summary>Khôi phục save từ các bản sao lưu tự động (tạo mỗi lần trước khi chơi).</summary>
+    private async Task RestoreSave(GameItem item)
+    {
+        var guard = new SaveGuard(App.Paths);
+        var saves = guard.Locate(item.Record, App.Db.GetGames(includeMissing: true), App.Catalog);
+        var backups = guard.ListBackups(saves);
+        if (backups.Count == 0)
+        {
+            await Dialogs.Info(this, Loc.T("restore.title"), Loc.T("restore.none"));
+            return;
+        }
+        string When(SaveBackup b) => $"{Loc.Date(b.Time)}  {b.Time:HH:mm:ss}";
+        int i = await Dialogs.Choose(this, Loc.T("restore.title"), Loc.T("restore.text"), backups.Select(When).ToList());
+        if (i < 0) return;
+        if (!await Dialogs.Confirm(this, Loc.T("restore.title"), Loc.T("restore.confirm", item.Name, When(backups[i])),
+                yes: Loc.T("restore.yes"), no: Loc.T("dialog.cancel"))) return;
+        try
+        {
+            guard.Restore(saves, backups[i]);
+            await Dialogs.Info(this, Loc.T("restore.title"), Loc.T("restore.done"));
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Khôi phục save lỗi", ex);
+            await Dialogs.Info(this, Loc.T("settings.save_error_title"), ex.Message);
+        }
+    }
+
     private async Task Rename(GameItem item)
     {
-        var name = await Dialogs.AskText(this, "Đổi tên hiển thị",
-            "Tên mới chỉ hiển thị trong Game Center, không đổi tên file. Để trống để dùng lại tên gốc.", item.Name);
+        var name = await Dialogs.AskText(this, Loc.T("rename.title"), Loc.T("rename.text"), item.Name);
         if (name == null) return;
         App.Db.SetDisplayTitle(item.Record.Id, name == item.Record.Title ? null : name);
         Reload(item.Record.Id);
@@ -475,7 +527,7 @@ public partial class MainWindow : Window
     private async Task ChoosePlatform(GameItem item)
     {
         var platforms = App.Catalog.Platforms.Where(p => p.Enabled).ToList();
-        int i = await Dialogs.Choose(this, "Chọn hệ máy", $"Game \"{item.Name}\" là game của máy nào?",
+        int i = await Dialogs.Choose(this, Loc.T("platform.title"), Loc.T("platform.text", item.Name),
             platforms.Select(p => p.DisplayName).ToList());
         if (i < 0) return;
         App.Db.SetPlatform(item.Record.Id, platforms[i].Name);
@@ -486,9 +538,9 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Chọn ảnh bìa",
+            Title = Loc.T("cover.title"),
             AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("Ảnh") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg" } } },
+            FileTypeFilter = new[] { new FilePickerFileType(Loc.T("cover.images")) { Patterns = new[] { "*.png", "*.jpg", "*.jpeg" } } },
         });
         var src = files.FirstOrDefault()?.TryGetLocalPath();
         if (src == null) return;
@@ -511,13 +563,41 @@ public partial class MainWindow : Window
 
     private async void Settings_Click(object? sender, RoutedEventArgs e)
     {
-        await new SettingsWindow().ShowDialog(this);
+        var settings = new SettingsWindow();
+        await settings.ShowDialog(this);
+        if (settings.ChosenLanguage != null) { App.SwitchLanguage(settings.ChosenLanguage); return; }
         ApplyLauncherFullscreen();
         UpdateControlUi();
         Reload();
     }
 
     private async void Help_Click(object? sender, RoutedEventArgs e) => await new HelpWindow().ShowDialog(this);
+
+    /// <summary>Đổi sang ngôn ngữ kế tiếp (có 2 ngôn ngữ thì bấm là đổi ngay; nhiều hơn thì hỏi chọn).</summary>
+    private async void Language_Click(object? sender, RoutedEventArgs e)
+    {
+        var others = Loc.Available.Where(a => a.Code != Loc.Language).ToList();
+        if (others.Count == 0) return;
+        int i = 0;
+        if (others.Count > 1)
+        {
+            i = await Dialogs.Choose(this, Loc.T("settings.language"), null, others.Select(a => a.Name).ToList());
+            if (i < 0) return;
+        }
+        App.SwitchLanguage(others[i].Code);
+    }
+
+    /// <summary>BIOS người dùng chép nhầm vào thư mục Games: chép sang thư mục BIOS (không hiện như game).</summary>
+    private static void ImportBios(IReadOnlyList<string> biosFiles)
+    {
+        if (biosFiles.Count == 0) return;
+        try
+        {
+            int n = Ps2Bios.ImportFromGames(biosFiles, App.Paths.BiosDir);
+            if (n > 0) Log.Info($"Đã chép {n} file BIOS từ thư mục Games sang thư mục BIOS");
+        }
+        catch (Exception ex) { Log.Error("Không chép được BIOS từ thư mục Games", ex); }
+    }
 
     // ------------------------------------------------------------------ Tay cầm
 

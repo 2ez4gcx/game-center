@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using GameCenter.Core.Localization;
 
 namespace GameCenter.Desktop;
 
@@ -120,7 +121,7 @@ public static class Dialogs
     {
         var w = CreateWindow(title);
         var root = Shell(w, title, message, out var buttons);
-        var ok = Button("Đã hiểu", (_, _) => w.Close(), primary: true);
+        var ok = Button(Loc.T("dialog.ok"), (_, _) => w.Close(), primary: true);
         buttons.Children.Add(ok);
         root.Children.Add(buttons);
         w.Opened += (_, _) => ok.Focus(NavigationMethod.Directional);
@@ -128,14 +129,14 @@ public static class Dialogs
     }
 
     public static async Task<bool> Confirm(Window owner, string title, string message,
-        string yes = "Đồng ý", string no = "Không", bool cancellable = true)
+        string? yes = null, string? no = null, bool cancellable = true)
     {
         var w = CreateWindow(title, cancellable: cancellable);
         var root = Shell(w, title, message, out var buttons);
         bool? result = null;
-        var yesBtn = Button(yes, (_, _) => { result = true; w.Close(); }, primary: true);
+        var yesBtn = Button(yes ?? Loc.T("dialog.yes"), (_, _) => { result = true; w.Close(); }, primary: true);
         buttons.Children.Add(yesBtn);
-        buttons.Children.Add(Button(no, (_, _) => { result = false; w.Close(); }));
+        buttons.Children.Add(Button(no ?? Loc.T("dialog.no"), (_, _) => { result = false; w.Close(); }));
         root.Children.Add(buttons);
         if (!cancellable) w.Closing += (_, e) => { if (result == null) e.Cancel = true; };
         w.Opened += (_, _) => yesBtn.Focus(NavigationMethod.Directional);
@@ -150,8 +151,8 @@ public static class Dialogs
         var box = new TextBox { Text = initial };
         root.Children.Add(box);
         bool ok = false;
-        buttons.Children.Add(Button("Lưu", (_, _) => { ok = true; w.Close(); }, primary: true));
-        buttons.Children.Add(Button("Hủy", (_, _) => w.Close()));
+        buttons.Children.Add(Button(Loc.T("dialog.save"), (_, _) => { ok = true; w.Close(); }, primary: true));
+        buttons.Children.Add(Button(Loc.T("dialog.cancel"), (_, _) => w.Close()));
         root.Children.Add(buttons);
         box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { ok = true; w.Close(); } };
         w.Opened += (_, _) => { box.Focus(); box.SelectAll(); };
@@ -175,7 +176,7 @@ public static class Dialogs
             root.Children.Add(b);
             first ??= b;
         }
-        buttons.Children.Add(Button("Hủy", (_, _) => w.Close()));
+        buttons.Children.Add(Button(Loc.T("dialog.cancel"), (_, _) => w.Close()));
         root.Children.Add(buttons);
         w.Opened += (_, _) => first?.Focus(NavigationMethod.Directional);
         await w.ShowDialog(owner);
@@ -186,8 +187,8 @@ public static class Dialogs
     public static Window StartupError(string message)
     {
         var w = new Window { Title = "Game Center", Width = 720, SizeToContent = SizeToContent.Height, WindowStartupLocation = WindowStartupLocation.CenterScreen };
-        var root = Shell(w, "Game Center không khởi động được", message, out var buttons);
-        buttons.Children.Add(Button("Đóng", (_, _) => w.Close(), primary: true));
+        var root = Shell(w, Loc.T("startup.error_title"), message, out var buttons);
+        buttons.Children.Add(Button(Loc.T("dialog.close"), (_, _) => w.Close(), primary: true));
         root.Children.Add(buttons);
         return w;
     }

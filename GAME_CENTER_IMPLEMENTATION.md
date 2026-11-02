@@ -1,5 +1,13 @@
 # Game Center Retro — Tài liệu triển khai (bản sửa đổi)
 
+> Bản 0.3.0:
+> - **PS2** qua core **LRPS2** (`pcsx2_libretro`, GPLv3, mã nguồn libretro/parallel-ps2). BIOS bắt buộc: Game Center nhận BIOS PS2 theo nội dung (file 4–8 MB có bảng ROMDIR `RESET` → `ROMDIR`), tự chép từ `BIOS/` hoặc `BIOS/PS2/` sang `BIOS/pcsx2/bios/` nơi core tìm. Không đóng gói BIOS.
+> - Phân biệt đĩa PS1 / PS2 theo `SYSTEM.CNF` (`BOOT2` = PS2), đọc được `.iso`, `.bin` thô, `.cso`; `.chd` theo metadata (DVD = PS2). Game nhiều đĩa ghép theo từng hệ máy, kể cả đĩa rời `.chd` / `.iso`.
+> - **Master System / Game Gear** dùng Genesis Plus GX đã đóng gói.
+> - **Đa ngôn ngữ** (tiếng Việt, tiếng Anh): chuỗi trong `src/GameCenter.Core/Localization/Lang/*.json`; ngôn ngữ lần đầu lấy theo bộ cài Windows (`Defaults/installer.ini`), bản cũ giữ tiếng Việt, còn lại theo hệ điều hành. Menu RetroArch cùng ngôn ngữ (`user_language`).
+> - Nhận diện file nén / định dạng lạ và báo rõ cách xử lý: xem [docs/nhan-dien-file-nen.md](docs/nhan-dien-file-nen.md).
+> - **Bảo toàn save** (xem [docs/bao-toan-save.md](docs/bao-toan-save.md)): nhận lại save khi tên file chạy đổi, tên save riêng cho game trùng tên file (`EBOOT.PBP`), sao lưu tự động trước mỗi lần chơi + khôi phục, `block_sram_overwrite = true` (sửa lỗi "Chơi tiếp" làm mất save trong game của máy băng ở 0.2.0), cố định tùy chọn thẻ nhớ của core, không ghi `.lrtl` vào thư mục cài đặt. Kiểm thử đầu-cuối với RetroArch thật: `tools/e2e-test.ps1`.
+>
 > Thay đổi so với bản trước:
 > - Bỏ DuckStation khỏi bộ cài (giấy phép CC BY-NC-ND 4.0 không cho đóng gói lại). PS1 chuyển sang core **Beetle PSX HW** của RetroArch.
 > - Toàn bộ platform chạy qua **một emulator duy nhất là RetroArch** để thống nhất tay cầm, save và cách thoát game.

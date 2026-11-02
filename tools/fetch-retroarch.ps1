@@ -20,6 +20,7 @@ $ErrorActionPreference = 'Stop'
 # Core → file LICENSE nguồn (raw GitHub). Cập nhật đường dẫn nếu repo đổi tên nhánh.
 $cores = [ordered]@{
     'mednafen_psx_hw' = @{ License = 'https://raw.githubusercontent.com/libretro/beetle-psx-libretro/master/COPYING'; Name = 'beetle-psx-hw' }
+    'pcsx2'           = @{ License = 'https://raw.githubusercontent.com/libretro/parallel-ps2/master/COPYING.GPLv3';  Name = 'lrps2' }
     'snes9x'          = @{ License = 'https://raw.githubusercontent.com/libretro/snes9x/master/LICENSE';              Name = 'snes9x' }
     'mgba'            = @{ License = 'https://raw.githubusercontent.com/libretro/mgba/master/LICENSE';               Name = 'mgba' }
     'genesis_plus_gx' = @{ License = 'https://raw.githubusercontent.com/libretro/Genesis-Plus-GX/master/LICENSE.txt'; Name = 'genesis-plus-gx' }

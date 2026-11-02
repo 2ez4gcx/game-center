@@ -4,6 +4,7 @@ RetroArch được phân phối theo GPLv3. Mã nguồn đúng phiên bản đó
 
 Core đóng gói (bản build libretro buildbot, windows x86_64), mã nguồn:
   Beetle PSX HW (GPLv2):         https://github.com/libretro/beetle-psx-libretro
+  LRPS2 (GPLv3):                 https://github.com/libretro/parallel-ps2
   FCEUmm (GPLv2):                https://github.com/libretro/libretro-fceumm
   Gambatte (GPLv2):              https://github.com/libretro/gambatte-libretro
   mGBA (MPL 2.0):                https://github.com/libretro/mgba
