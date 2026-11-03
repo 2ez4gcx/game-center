@@ -1,18 +1,32 @@
-# Game Center
+# Game Center: a simple retro game launcher for seniors
 
 [Tiếng Việt](README.md) · **English**
 
-A **free** retro game launcher for **Windows, macOS and Linux**, designed for older players: large text, big buttons, controller or keyboard. Every console runs through RetroArch. The interface is available in **Vietnamese and English** (click the 🌐 button in the bottom-left corner to switch).
+[![Latest release](https://img.shields.io/github/v/release/2ez4gcx/game-center-retro-launcher?label=latest)](https://github.com/2ez4gcx/game-center-retro-launcher/releases/latest)
+[![Tests](https://github.com/2ez4gcx/game-center-retro-launcher/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/2ez4gcx/game-center-retro-launcher/actions/workflows/release.yml)
+![Windows · macOS · Linux](https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-0a7bbb)
+![Free, no ads](https://img.shields.io/badge/free-no%20ads-2ea44f)
+
+**Game Center** is a **free** emulator frontend for **Windows, macOS and Linux** that lets anyone play classic console games: PlayStation (PS1), PlayStation 2 (PS2), NES, SNES, Game Boy, Game Boy Advance, Sega Mega Drive / Genesis, Master System and Game Gear. It is designed for older players and anyone who is not comfortable with computers: large text, big buttons, controller or keyboard, nothing to configure. Under the hood it runs RetroArch, but the player never has to deal with it. The interface is available in **English and Vietnamese** (click the 🌐 button in the bottom-left corner to switch).
 
 ```text
 Install → Next → Finish → Copy games → Play
 ```
 
-![Game Center main screen](docs/anh/man-hinh-chinh.png)
+![Game Center main screen: a list of NES, SNES, Game Boy and PS1 games with large text and Play buttons](docs/anh/man-hinh-chinh.png)
+
+## Features
+
+- **Install and play:** the installer ships RetroArch and 7 emulator cores; nothing else to download or configure.
+- **Automatic game detection:** copy games into the `Games` folder and Game Center reads the file content to work out which console each game is for (including `.zip`, `.chd`, `.pbp` and loose `.bin` files), telling PS1 and PS2 discs apart.
+- **Multi-disc games:** Final Fantasy VII, Metal Gear Solid, The Legend of Dragoon... are merged into one entry, discs can be swapped while playing, and all discs share one memory card.
+- **Saves are never lost:** each game's saves are backed up every time you play (the last 10 are kept) and can be restored from inside the app; renaming a game file keeps its saves.
+- **Hard to press the wrong button:** exiting a game takes two presses, and Game Center asks in plain words whether to save your place.
+- **Easy to find games:** accent-insensitive search, favorites, recently played.
 
 ## Download
 
-Get it from [Releases](https://github.com/2ez4gcx/game-center/releases). Every build already includes .NET 8, RetroArch and the emulator cores; nothing else to install. **No games or BIOS files are included.**
+Get the latest version from [Releases](https://github.com/2ez4gcx/game-center-retro-launcher/releases/latest). Every build already includes .NET 8, RetroArch and the emulator cores; nothing else to install. **No games or BIOS files are included.**
 
 | OS | File | How to install |
 |---|---|---|
@@ -23,7 +37,7 @@ Get it from [Releases](https://github.com/2ez4gcx/game-center/releases). Every b
 
 **Windows:** no admin rights needed, installs to `C:\GameCenter` by default (another drive can be chosen). Games, saves and BIOS live inside the install folder. Uninstalling **does not delete** games or saves.
 
-> ⚠️ **The macOS and Linux builds have not been tested on real machines yet.** They build and pass the automated tests on both systems. If something goes wrong, please [open an issue](https://github.com/2ez4gcx/game-center/issues) and attach `~/GameCenter/Logs/gamecenter.log`. The Windows build is fully tested.
+> ⚠️ **The macOS and Linux builds have not been tested on real machines yet.** They build and pass the automated tests on both systems. If something goes wrong, please [open an issue](https://github.com/2ez4gcx/game-center-retro-launcher/issues) and attach `~/GameCenter/Logs/gamecenter.log`. The Windows build is fully tested.
 
 **macOS / Linux:** games, saves and BIOS live in `~/GameCenter`. On macOS, the first time, **right-click → Open** because the app is not notarized by Apple.
 
@@ -31,14 +45,14 @@ Get it from [Releases](https://github.com/2ez4gcx/game-center/releases). Every b
 
 | Console | Formats | Core | Core license |
 |---|---|---|---|
-| NES | `.nes`, `.zip` | FCEUmm | GPLv2 |
-| SNES | `.sfc`, `.smc`, `.zip` | Snes9x | Non-commercial |
-| Game Boy / Color | `.gb`, `.gbc`, `.zip` | Gambatte | GPLv2 |
-| GBA | `.gba`, `.zip` | mGBA | MPL 2.0 |
-| Master System / Game Gear | `.sms`, `.gg`, `.zip` | Genesis Plus GX | Non-commercial |
-| Mega Drive / Genesis | `.md`, `.gen`, `.smd`, `.bin`, `.zip` | Genesis Plus GX | Non-commercial |
-| PS1 | `.cue`, `.bin`, `.pbp`, `.chd`, `.ccd`, `.m3u` | Beetle PSX HW | GPLv2 |
-| **PS2** | `.iso`, `.chd`, `.cso`, `.zso`, `.cue`/`.bin`, `.m3u` | LRPS2 | GPLv3 |
+| NES (Famicom) | `.nes`, `.zip` | FCEUmm | GPLv2 |
+| SNES (Super Famicom) | `.sfc`, `.smc`, `.zip` | Snes9x | Non-commercial |
+| Game Boy / Game Boy Color | `.gb`, `.gbc`, `.zip` | Gambatte | GPLv2 |
+| GBA (Game Boy Advance) | `.gba`, `.zip` | mGBA | MPL 2.0 |
+| Sega Master System / Game Gear | `.sms`, `.gg`, `.zip` | Genesis Plus GX | Non-commercial |
+| Sega Mega Drive / Genesis | `.md`, `.gen`, `.smd`, `.bin`, `.zip` | Genesis Plus GX | Non-commercial |
+| PS1 (PlayStation) | `.cue`, `.bin`, `.pbp`, `.chd`, `.ccd`, `.m3u` | Beetle PSX HW | GPLv2 |
+| **PS2** (PlayStation 2) | `.iso`, `.chd`, `.cso`, `.zso`, `.cue`/`.bin`, `.m3u` | LRPS2 | GPLv3 |
 
 PS1 games run without a BIOS (OpenBIOS). Adding a BIOS you backed up yourself to the `BIOS` folder improves compatibility.
 
@@ -118,6 +132,40 @@ Change keys with **Set up keys** (click a box, then press the new key).
 A ready-to-use file must be exactly **131,072 bytes (128 KB)**.
 
 **Using the launcher with a controller:** ↑↓ choose a game, A play, LB/RB switch list, Y favorite, X more options, START settings, SELECT help.
+
+## FAQ
+
+### Is Game Center free?
+
+Yes. Completely free, no ads, no paid features.
+
+### Does it come with games?
+
+No. Game Center includes no games and no BIOS files. Use games and BIOS files you legally own, for example backups of your own discs and cartridges.
+
+### Do PS1 games need a BIOS? What about PS2?
+
+PS1 games run without one: copy them in and play. PS2 requires a BIOS dumped from your own PS2, see [Supported consoles](#supported-consoles).
+
+### Can I play multi-disc PS1 games?
+
+Yes. Put the discs in the same place (or one folder per disc) and Game Center merges them into one game. When the game asks for the next disc, press **F1** → **Disc Control** to swap it; step-by-step instructions are behind the **?** button in the app. The memory card is shared by all discs.
+
+### What about `.7z` or `.rar` files?
+
+They show up under **Not recognized** with instructions: extract them, then copy the game into `Games`. A `.zip` holding a cartridge game (NES, SNES, Game Boy, GBA, Mega Drive...) plays as is, no need to extract it.
+
+### Can I bring my saves from ePSXe, DuckStation or RetroArch?
+
+PS1 memory card saves can be reused: see **Using an existing PS1 memory card save** under [Usage](#usage).
+
+### Will it run on an old or slow computer?
+
+Games for the older consoles (NES, SNES, Game Boy, GBA, Mega Drive) and PS1 are very light. PS2 is much more demanding: a 4-core CPU and a dedicated or recent built-in graphics chip are recommended.
+
+### How is it different from RetroArch?
+
+Game Center is a simple layer on top of RetroArch, see the [comparison table](#how-is-game-center-different-from-retroarch).
 
 ## Development
 
